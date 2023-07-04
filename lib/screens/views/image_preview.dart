@@ -1,12 +1,11 @@
 import 'dart:io';
 
-import 'package:document_organiser/home_screen.dart';
+import 'package:document_organiser/screens/views/home_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:share_plus/share_plus.dart';
 
-import 'constans.dart';
 
 class ImagePreview extends StatefulWidget {
   final List<File> imageFiles;
@@ -14,12 +13,14 @@ class ImagePreview extends StatefulWidget {
   final String filePath;
   final File file;
 
+
   const ImagePreview(
       {super.key,
       required this.filePath,
       required this.file,
       required this.imageFiles,
-      required this.index});
+      required this.index,
+      });
 
   @override
   State<ImagePreview> createState() => _ImagePreviewState();

@@ -1,16 +1,18 @@
 import 'dart:io';
 
-import 'package:document_organiser/home_screen.dart';
+import 'package:document_organiser/screens/views/home_screen.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 
-import 'downloading_dialoag.dart';
 
 class DocumentPicker extends StatefulWidget {
-  const DocumentPicker({super.key});
+
+
+  const DocumentPicker({super.key
+  });
 
   @override
   State<DocumentPicker> createState() => DocumentPickerState();
