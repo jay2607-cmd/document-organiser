@@ -12,10 +12,7 @@ import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import 'image_preview.dart';
 
 class HomeScreen extends StatefulWidget {
-
-
-  const HomeScreen({super.key
-  });
+  const HomeScreen({super.key});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -94,7 +91,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => DocumentPicker()));
+                          builder: (context) => DocumentPicker.nothing()));
                 },
                 icon: const Icon(Icons.add)),
             IconButton(
@@ -130,15 +127,24 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 }),
           ],
         ),
-        body: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16),
-          child: TabBarView(
-            children: [
-              const Categories(),
-              allImages(),
-              allPDFs(),
-            ],
-          ),
+        body: TabBarView(
+          children: [
+            const Padding(
+              padding:
+                  EdgeInsets.symmetric(horizontal: 16.0, vertical: 16),
+              child: Categories(),
+            ),
+            Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16),
+              child: allImages(),
+            ),
+            Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16),
+              child: allPDFs(),
+            ),
+          ],
         ),
       ),
     );
@@ -146,105 +152,103 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   GridView allPDFs() {
     return GridView.builder(
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                childAspectRatio: 1.5 / 3,
-                crossAxisSpacing: 20.0,
-                mainAxisSpacing: 30.0,
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        childAspectRatio: 1.5 / 3,
+        crossAxisSpacing: 20.0,
+        mainAxisSpacing: 30.0,
+      ),
+      itemCount: pdfFiles.length,
+      itemBuilder: (BuildContext context, int index) {
+        file = pdfFiles[index];
+        return GestureDetector(
+          onTap: () {
+            print("${index}");
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => PdfPreview(
+                          PdfPath: pdfFiles[index].path,
+                        )));
+          },
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Container(height: 250,width: 250,child: Image.file(file)),
+              // Text(file.path),
+
+              // child: Image.file(file),
+              Container(
+                height: 260,
+                width: 250,
+                child: SfPdfViewer.file(
+                  File(file.path),
+                ),
               ),
-              itemCount: pdfFiles.length,
-              itemBuilder: (BuildContext context, int index) {
-                file = pdfFiles[index];
-                return GestureDetector(
-                  onTap: () {
-                    print("${index}");
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => PdfPreview(
-                                  PdfPath: pdfFiles[index].path,
-                                )));
-                  },
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      // Container(height: 250,width: 250,child: Image.file(file)),
-                      // Text(file.path),
+              Text(file.path.substring(70, 81)),
+              Text(file.path.substring(81, 89)),
 
-                      // child: Image.file(file),
-                      Container(
-                        height: 260,
-                        width: 250,
-                        child: SfPdfViewer.file(
-                          File(file.path),
-                        ),
-                      ),
-                      Text(file.path.substring(70, 81)),
-                      Text(file.path.substring(81, 89)),
-
-                      // Text(file.path),
-                    ],
-                  ),
-                );
-              },
-            );
+              // Text(file.path),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   GridView allImages() {
     return GridView.builder(
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                childAspectRatio: 1.5 / 3,
-                crossAxisSpacing: 20.0,
-                mainAxisSpacing: 30.0,
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        childAspectRatio: 1.5 / 3,
+        crossAxisSpacing: 20.0,
+        mainAxisSpacing: 30.0,
+      ),
+      itemCount: imageFiles.length,
+      itemBuilder: (BuildContext context, int index) {
+        file = imageFiles[index];
+        return GestureDetector(
+          onTap: () {
+            print("${index}");
+            Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => ImagePreview(
+                          filePath: imageFiles[index].path,
+                          file: imageFiles[index],
+                          imageFiles: imageFiles,
+                          index: index,
+                        )));
+          },
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(height: 250, width: 250, child: Image.file(file)),
+              // Text(file.path),
+              Text(file.path.substring(70, 81)),
+              Text(file.path.substring(81, 89)),
+
+              SizedBox(
+                height: 30,
               ),
-              itemCount: imageFiles.length,
-              itemBuilder: (BuildContext context, int index) {
-                file = imageFiles[index];
-                return GestureDetector(
-                  onTap: () {
-                    print("${index}");
-                    Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => ImagePreview(
-                                  filePath: imageFiles[index].path,
-                                  file: imageFiles[index],
-                                  imageFiles: imageFiles,
-                                  index: index,
 
-                                )));
-                  },
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                          height: 250, width: 250, child: Image.file(file)),
-                      // Text(file.path),
-                      Text(file.path.substring(70, 81)),
-                      Text(file.path.substring(81, 89)),
+              // child: Image.file(file),
+              // Container(
+              //   height: 260,
+              //   width: 250,
+              //   child: SfPdfViewer.file(
+              //     File(file.path),
+              //   ),
+              // ),
 
-                      SizedBox(
-                        height: 30,
-                      ),
-
-                      // child: Image.file(file),
-                      // Container(
-                      //   height: 260,
-                      //   width: 250,
-                      //   child: SfPdfViewer.file(
-                      //     File(file.path),
-                      //   ),
-                      // ),
-
-                      // Text(file.path),
-                    ],
-                  ),
-                );
-              },
-            );
+              // Text(file.path),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   Future<void> deleteAllFilesInFolder() async {
@@ -271,5 +275,3 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     }
   }
 }
-
-

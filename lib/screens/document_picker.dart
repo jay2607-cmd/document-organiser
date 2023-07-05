@@ -1,24 +1,30 @@
 import 'dart:io';
 
 import 'package:document_organiser/screens/views/home_screen.dart';
+import 'package:document_organiser/screens/views/image_preview.dart';
+import 'package:document_organiser/screens/views/pdf_preview.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 
-
 class DocumentPicker extends StatefulWidget {
+  String value = "";
 
+  DocumentPicker(String this.value);
 
-  const DocumentPicker({super.key
-  });
+  DocumentPicker.nothing();
 
   @override
-  State<DocumentPicker> createState() => DocumentPickerState();
+  State<DocumentPicker> createState() => DocumentPickerState(value: value);
 }
 
 class DocumentPickerState extends State<DocumentPicker> {
+  final String value;
+
+  DocumentPickerState({required this.value});
+
   File? image;
   // FilePickerResult? pdfFile;
   // final picker = ImagePicker();
@@ -29,6 +35,9 @@ class DocumentPickerState extends State<DocumentPicker> {
 
   bool isImagePreview = false;
   bool isPDFPreview = false;
+
+  late File file;
+
 
   Future getImageFromCamera() async {
     final pickerCameraImage =
@@ -91,6 +100,11 @@ class DocumentPickerState extends State<DocumentPicker> {
     // });
   }
 
+  String subfolderPath = "";
+
+  List<File> imageFiles = [];
+  List<File> pdfFiles = [];
+
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -114,17 +128,31 @@ class DocumentPickerState extends State<DocumentPicker> {
                   // await imagePath.writeAsBytes(byteData.buffer.asUint8List());
 
                   if (isImagePreview) {
+                    // moveFileToSubfolder(File(image!.path), value);
+
                     File imagePath =
                         await File('${directory!.path}/${DateTime.now()}.png')
                             .create();
                     await File(image!.path).copy(imagePath.path);
                     print("imagePath.path ${imagePath.path}");
-                  } else if (isPDFPreview) {
+
+                    // createSubfolder(value,imagePath.path);
+                    subfolderPath =
+                        await createSubfolder(value, imagePath.path);
+                    moveFileToSubfolder(imagePath.path);
+                  }
+
+                  else if (isPDFPreview) {
                     final PDFPath =
                         await File('${directory!.path}/${DateTime.now()}.pdf')
                             .create();
                     await File(pdfFilePath).copy(PDFPath.path);
                     print("PDF.path ${PDFPath.path}");
+
+                    subfolderPath =
+                    await createSubfolder(value, PDFPath.path);
+
+                    moveFileToSubfolder(PDFPath.path);
                   }
 
                   Navigator.pushReplacement(context,
@@ -142,6 +170,19 @@ class DocumentPickerState extends State<DocumentPicker> {
               children: [
                 Column(
                   children: [
+                    Text(
+                      value,
+                      style: TextStyle(fontSize: 30),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(
+                          left: 16.0, right: 16, top: 6, bottom: 6),
+                      child: Container(
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(40),
+                            color: Color(0xFFF6F7F8)),
+                      ),
+                    ),
                     image != null && isImagePreview
                         ? SingleChildScrollView(
                             child: Container(
@@ -190,6 +231,9 @@ class DocumentPickerState extends State<DocumentPicker> {
                         child: Text("PDF")),
                   ],
                 ),
+// allImages(),
+//                 allPDFs()
+
               ],
             ),
           ),
@@ -197,6 +241,170 @@ class DocumentPickerState extends State<DocumentPicker> {
       ),
     );
   }
+
+  Future<String> createSubfolder(
+      String subfolderName, String oldImagePath) async {
+    // Get the external storage directory
+    Directory? externalDir = await getExternalStorageDirectory();
+
+    // Create the subfolder path
+    String subfolderPath = '${externalDir?.path}/$subfolderName';
+
+    // Check if the subfolder already exists
+    if (!(await Directory(subfolderPath).exists())) {
+      // Create the subfolder
+      await Directory(subfolderPath).create(recursive: true);
+      print("already exist");
+    }
+    print("subfolder created $subfolderPath");
+
+
+    // Return the subfolder path
+    return subfolderPath;
+  }
+
+  void moveFileToSubfolder(String oldImagePath) async {
+    print(subfolderPath);
+
+    // Get the file name
+    String fileName = oldImagePath.split('/').last;
+
+    // Move the file to the subfolder
+
+    await File(oldImagePath).rename('$subfolderPath/$fileName');
+  }
+
+  GridView allPDFs() {
+    return GridView.builder(
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        childAspectRatio: 1.5 / 3,
+        crossAxisSpacing: 20.0,
+        mainAxisSpacing: 30.0,
+      ),
+      itemCount: pdfFiles.length,
+      itemBuilder: (BuildContext context, int index) {
+        file = pdfFiles[index];
+        return GestureDetector(
+          onTap: () {
+            print("${index}");
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => PdfPreview(
+                      PdfPath: pdfFiles[index].path,
+                    )));
+          },
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Container(height: 250,width: 250,child: Image.file(file)),
+              // Text(file.path),
+
+              // child: Image.file(file),
+              Container(
+                height: 260,
+                width: 250,
+                child: SfPdfViewer.file(
+                  File(file.path),
+                ),
+              ),
+              Text(file.path.substring(70, 81)),
+              Text(file.path.substring(81, 89)),
+
+              // Text(file.path),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  GridView allImages() {
+    return GridView.builder(
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        childAspectRatio: 1.5 / 3,
+        crossAxisSpacing: 20.0,
+        mainAxisSpacing: 30.0,
+      ),
+      itemCount: imageFiles.length,
+      itemBuilder: (BuildContext context, int index) {
+        file = imageFiles[index];
+        return GestureDetector(
+          onTap: () {
+            print("${index}");
+            Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => ImagePreview(
+                      filePath: imageFiles[index].path,
+                      file: imageFiles[index],
+                      imageFiles: imageFiles,
+                      index: index,
+                    )));
+          },
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(height: 250, width: 250, child: Image.file(file)),
+              // Text(file.path),
+              Text(file.path.substring(70, 81)),
+              Text(file.path.substring(81, 89)),
+
+              SizedBox(
+                height: 30,
+              ),
+
+              // child: Image.file(file),
+              // Container(
+              //   height: 260,
+              //   width: 250,
+              //   child: SfPdfViewer.file(
+              //     File(file.path),
+              //   ),
+              // ),
+
+              // Text(file.path),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+
+
+/*  Future<String> createSubfolder(String subfolderName) async {
+    // Get the external storage directory
+    Directory? externalDir = await getExternalStorageDirectory();
+
+    // Create the subfolder path
+    String subfolderPath = '${externalDir?.path}/$subfolderName';
+
+    // Check if the subfolder already exists
+    if (!(await Directory(subfolderPath).exists())) {
+      // Create the subfolder
+      await Directory(subfolderPath).create(recursive: true);
+    }
+
+    // Return the subfolder path
+    return subfolderPath;
+  }
+
+  void moveFileToSubfolder(File file, String subfolderName) async {
+    String subfolderPath = await createSubfolder(subfolderName);
+
+    print(subfolderPath);
+
+    // Get the file name
+    String fileName = file.path.split('/').last;
+
+    // Move the file to the subfolder
+    await file.rename('$subfolderPath/$fileName');
+  }*/
 
   Future<bool> _willPopCallback() {
     Navigator.pushReplacement(

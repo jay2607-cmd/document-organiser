@@ -18,6 +18,8 @@ class Categories extends StatefulWidget {
 }
 
 class _CategoriesState extends State<Categories> {
+  TextEditingController categoryController = TextEditingController();
+
 /*  String category1 = "i";
   String category2 = "";
   String category3 = "";
@@ -102,8 +104,9 @@ class _CategoriesState extends State<Categories> {
       box = Boxes.getData();
       box.add(data);
 
-      data = Save(name: "Business Card", image: "");
+      data = Save(name: "Business", image: "");
       box = Boxes.getData();
+
       box.add(data);
 
       data = Save(name: "Ticket ", image: "");
@@ -122,10 +125,6 @@ class _CategoriesState extends State<Categories> {
       box = Boxes.getData();
       box.add(data);
 
-      data = Save(name: "category3", image: "");
-      box = Boxes.getData();
-      box.add(data);
-
       data = Save(name: "Book", image: "");
       box = Boxes.getData();
       box.add(data);
@@ -141,6 +140,8 @@ class _CategoriesState extends State<Categories> {
       data = Save(name: "Contract", image: "");
       box = Boxes.getData();
       box.add(data);
+
+      print(box.get("name"));
 
       prefs.setBool("isFirst", true);
     } else {
@@ -161,8 +162,9 @@ class _CategoriesState extends State<Categories> {
         box = Boxes.getData();
         box.add(data);
 
-        data = Save(name: "Business Card", image: "");
+        data = Save(name: "Business", image: "");
         box = Boxes.getData();
+
         box.add(data);
 
         data = Save(name: "Ticket ", image: "");
@@ -181,10 +183,6 @@ class _CategoriesState extends State<Categories> {
         box = Boxes.getData();
         box.add(data);
 
-        data = Save(name: "category3", image: "");
-        box = Boxes.getData();
-        box.add(data);
-
         data = Save(name: "Book", image: "");
         box = Boxes.getData();
         box.add(data);
@@ -200,11 +198,14 @@ class _CategoriesState extends State<Categories> {
         data = Save(name: "Contract", image: "");
         box = Boxes.getData();
         box.add(data);
+        print("hey ${box.get("name")}");
+
         prefs.setBool("isFirst", true);
       }
     }
   }
 
+   List dropDownList = [];
   @override
   Widget build(BuildContext context) {
     /*
@@ -287,36 +288,39 @@ class _CategoriesState extends State<Categories> {
         builder: (context, box, _) {
           var data = box.values.toList().cast<Save>();
           print("data length ${data.length}");
-          return ListView.builder(
+          return GridView.builder(
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 3,
+            ),
             itemCount: box.length,
             itemBuilder: (context, index) {
-              int reversedIndex = data.length - 1 - index;
 
-              return Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(
-                      20), // Set the desired border radiusSet the desired background color
-                ),
-                child: Padding(
-                  // outside card padding
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
+              return GestureDetector(
+                onTap: () {
+                  Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) =>
+                              DocumentPicker(data[index].name)));
+                },
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(
+                        20), // Set the desired border radiusSet the desired background color
+                  ),
                   child: Card(
                     // elevation: 0,
+
                     color: Color(0xffF6F7F8),
-                    child: Padding(
-                      //content padding
-                      padding: const EdgeInsets.only(
-                          top: 10, bottom: 12, left: 16, right: 8),
+                    child: Container(
+                      color: Colors.blue.shade200,
                       child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Text(data[reversedIndex].name,
+                              Text(data[index].name,
                                   style: const TextStyle(fontSize: 13)),
                               // SizedBox(
                               //   height: 4,
@@ -336,6 +340,66 @@ class _CategoriesState extends State<Categories> {
           );
         },
       ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: const Text('Add Category!',
+                    style: TextStyle(color: Colors.blue)),
+                content: const Text('Do you really want to Add New Category!'),
+                actions: [
+                  TextField(
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.blue),
+                          borderRadius: BorderRadius.circular(10)),
+                      hintText: 'Enter New Category',
+                      helperText: 'Keep it meaningful',
+                      labelText: 'Add Category',
+                      prefixIcon: const Icon(
+                        Icons.drive_file_rename_outline_rounded,
+                        color: Colors.blue,
+                      ),
+                    ),
+                    controller: categoryController,
+                  ),
+                  TextButton(
+                    child: Text('Add'),
+                    onPressed: () async {
+                      Navigator.pop(context);
+                      print(categoryController);
+
+                      var data = Save(name: categoryController.text, image: "");
+                      var box = Boxes.getData();
+                      bool categoryExists = box.values.any((item) =>
+                          item.name.toLowerCase() == data.name.toLowerCase());
+                      if (categoryExists) {
+                        showInSnackBar("Category already exists!");
+                        return; // Don't add the category if it already exists
+                      }
+                      box.add(data);
+
+                      setState(() {});
+                      categoryController.clear();
+                    },
+                  ),
+                ],
+              );
+            },
+          );
+        },
+        label: Text("New Category"),
+        icon: Icon(Icons.add),
+      ),
     );
+  }
+
+  void showInSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(message),
+      duration: Duration(seconds: 2),
+    ));
   }
 }
