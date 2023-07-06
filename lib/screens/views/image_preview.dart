@@ -61,8 +61,8 @@ class _ImagePreviewState extends State<ImagePreview> {
                   imageProvider: FileImage(File(widget.filePath)),
                 ),
               ),
-              Text(widget.filePath.substring(67, 86)),
-              // Text(filePath.substring(77, 86 )),
+              Text(widget.file.path.substring(70)),
+
               Padding(
                 padding:
                     const EdgeInsets.symmetric(vertical: 16.0, horizontal: 32),

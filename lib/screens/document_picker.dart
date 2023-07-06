@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:document_organiser/screens/views/category_insider.dart';
 import 'package:document_organiser/screens/views/home_screen.dart';
 import 'package:document_organiser/screens/views/image_preview.dart';
 import 'package:document_organiser/screens/views/pdf_preview.dart';
@@ -8,6 +9,9 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
+import 'package:flutter_expandable_fab/flutter_expandable_fab.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
 
 class DocumentPicker extends StatefulWidget {
   String value = "";
@@ -25,6 +29,10 @@ class DocumentPickerState extends State<DocumentPicker> {
 
   DocumentPickerState({required this.value});
 
+  final pdf = pw.Document();
+
+  CategoryInsiderState categoryInsiderState = CategoryInsiderState();
+
   File? image;
   // FilePickerResult? pdfFile;
   // final picker = ImagePicker();
@@ -37,7 +45,6 @@ class DocumentPickerState extends State<DocumentPicker> {
   bool isPDFPreview = false;
 
   late File file;
-
 
   Future getImageFromCamera() async {
     final pickerCameraImage =
@@ -119,6 +126,19 @@ class DocumentPickerState extends State<DocumentPicker> {
               }),
           actions: [
             IconButton(
+              onPressed: () {
+                if (isImagePreview) {
+                  createPDF();
+                  savePDF();
+                }
+                else {
+                  print("Choose PNG file please");
+                }
+                _willPopCallback();
+              },
+              icon: Icon(Icons.picture_as_pdf_sharp),
+            ),
+            IconButton(
                 onPressed: () async {
                   // showDialog(context: context, builder: (context) => DownloadingDialoag(image: image,isImagePreview: isImagePreview,isPDFPreview: isPDFPreview,pdfFilePath: pdfFilePath));
 
@@ -140,103 +160,121 @@ class DocumentPickerState extends State<DocumentPicker> {
                     subfolderPath =
                         await createSubfolder(value, imagePath.path);
                     moveFileToSubfolder(imagePath.path);
-                  }
-
-                  else if (isPDFPreview) {
+                  } else if (isPDFPreview) {
                     final PDFPath =
                         await File('${directory!.path}/${DateTime.now()}.pdf')
                             .create();
                     await File(pdfFilePath).copy(PDFPath.path);
                     print("PDF.path ${PDFPath.path}");
 
-                    subfolderPath =
-                    await createSubfolder(value, PDFPath.path);
+                    subfolderPath = await createSubfolder(value, PDFPath.path);
 
                     moveFileToSubfolder(PDFPath.path);
                   }
 
-                  Navigator.pushReplacement(context,
-                      MaterialPageRoute(builder: (context) => HomeScreen()));
+                  _willPopCallback();
                   // Navigator.pop(context);
                 },
                 icon: Icon(Icons.save))
           ],
         ),
-        body: Center(
-          child: SingleChildScrollView(
-            child: Column(
-              // mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
+        body: Column(
+          // mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Column(
               children: [
-                Column(
-                  children: [
-                    Text(
-                      value,
-                      style: TextStyle(fontSize: 30),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(
-                          left: 16.0, right: 16, top: 6, bottom: 6),
-                      child: Container(
-                        decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(40),
-                            color: Color(0xFFF6F7F8)),
-                      ),
-                    ),
-                    image != null && isImagePreview
-                        ? SingleChildScrollView(
-                            child: Container(
-                                height: 600,
-                                width: 400,
-                                child: Image.file(image!)))
-                        : Text("No image selected"),
-
-                    // pdfFile != null ? SfPdfViewer.file(FilePickerResult()) : Text("No File Selected") ,\
-
-                    pdfFilePath != "" && isPDFPreview
-                        ? SingleChildScrollView(
-                            child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Container(
-                                height: 600,
-                                width: 400,
-                                child: SfPdfViewer.file(File(pdfFilePath))),
-                          ))
-                        : Text("No pdf selected"),
-                  ],
+                Text(
+                  value,
+                  style: TextStyle(fontSize: 30),
                 ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    ElevatedButton(
-                        onPressed: () {
-                          getImageFromCamera();
-                        },
-                        child: Text("Camera")),
-                    SizedBox(
-                      width: 20,
+                Padding(
+                  padding: const EdgeInsets.only(
+                      left: 16.0, right: 16, top: 6, bottom: 6),
+                  child: SingleChildScrollView(
+                    child: Container(
+                      decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(40),
+                          color: Color(0xFFF6F7F8)),
                     ),
-                    ElevatedButton(
-                        onPressed: () {
-                          getImageFromGallery();
-                        },
-                        child: Text("Gallery")),
-                    SizedBox(
-                      width: 20,
-                    ),
-                    ElevatedButton(
-                        onPressed: () {
-                          getPDF();
-                        },
-                        child: Text("PDF")),
-                  ],
+                  ),
                 ),
-// allImages(),
-//                 allPDFs()
+                image != null && isImagePreview
+                    ? SingleChildScrollView(
+                        child: Container(
+                            height: 600, width: 400, child: Image.file(image!)),
+                      )
+                    : Text("No image selected"),
 
+                // pdfFile != null ? SfPdfViewer.file(FilePickerResult()) : Text("No File Selected") ,\
+
+                pdfFilePath != "" && isPDFPreview
+                    ? Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Container(
+                            height: 600,
+                            width: 400,
+                            child: SfPdfViewer.file(File(pdfFilePath))),
+                      )
+                    : Text("No pdf selected"),
               ],
             ),
-          ),
+            /*Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton(
+                    onPressed: () {
+                      getImageFromCamera();
+                    },
+                    child: Text("Camera")),
+                SizedBox(
+                  width: 20,
+                ),
+                ElevatedButton(
+                    onPressed: () {
+                      getImageFromGallery();
+                    },
+                    child: Text("Gallery")),
+                SizedBox(
+                  width: 20,
+                ),
+                ElevatedButton(
+                    onPressed: () {
+                      getPDF();
+                    },
+                    child: Text("PDF")),
+              ],
+            ),*/
+            Expanded(child: allImages()),
+            Expanded(child: allPDFs())
+          ],
+        ),
+        floatingActionButtonLocation: ExpandableFab.location,
+        floatingActionButton: ExpandableFab(
+          child: Icon(Icons.add),
+          children: [
+            FloatingActionButton(
+              heroTag: null,
+              child: const Icon(Icons.camera),
+              onPressed: () {
+                getImageFromCamera();
+              },
+            ),
+            FloatingActionButton(
+              heroTag: null,
+              child: const Icon(Icons.photo),
+              onPressed: () {
+                getImageFromGallery();
+              },
+            ),
+            FloatingActionButton(
+              heroTag: null,
+              child: const Icon(Icons.picture_as_pdf),
+              onPressed: () {
+                getPDF();
+              },
+            ),
+          ],
         ),
       ),
     );
@@ -258,16 +296,16 @@ class DocumentPickerState extends State<DocumentPicker> {
     }
     print("subfolder created $subfolderPath");
 
-
     // Return the subfolder path
     return subfolderPath;
   }
 
   void moveFileToSubfolder(String oldImagePath) async {
-    print(subfolderPath);
+    print("subfolderPath : $subfolderPath");
 
     // Get the file name
     String fileName = oldImagePath.split('/').last;
+    print("filename moved ${fileName}");
 
     // Move the file to the subfolder
 
@@ -292,8 +330,8 @@ class DocumentPickerState extends State<DocumentPicker> {
                 context,
                 MaterialPageRoute(
                     builder: (context) => PdfPreview(
-                      PdfPath: pdfFiles[index].path,
-                    )));
+                          PdfPath: pdfFiles[index].path,
+                        )));
           },
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -339,11 +377,11 @@ class DocumentPickerState extends State<DocumentPicker> {
                 context,
                 MaterialPageRoute(
                     builder: (context) => ImagePreview(
-                      filePath: imageFiles[index].path,
-                      file: imageFiles[index],
-                      imageFiles: imageFiles,
-                      index: index,
-                    )));
+                          filePath: imageFiles[index].path,
+                          file: imageFiles[index],
+                          imageFiles: imageFiles,
+                          index: index,
+                        )));
           },
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -374,8 +412,6 @@ class DocumentPickerState extends State<DocumentPicker> {
       },
     );
   }
-
-
 
 /*  Future<String> createSubfolder(String subfolderName) async {
     // Get the external storage directory
@@ -411,4 +447,59 @@ class DocumentPickerState extends State<DocumentPicker> {
         context, MaterialPageRoute(builder: (context) => HomeScreen()));
     return Future.value(true);
   }
+
+  createPDF() async {
+    final image2 = pw.MemoryImage(image!.readAsBytesSync());
+    pdf.addPage(
+      pw.Page(
+        pageFormat: PdfPageFormat.a4,
+        build: (pw.Context context) {
+          return pw.Center(child: pw.Image(image2));
+        },
+      ),
+    );
+  }
+
+  savePDF() async {
+    /*
+    final directory = await getExternalStorageDirectory();
+
+    final PDFPath =
+        await File('${directory!.path}/${DateTime.now()}.pdf')
+        .create();
+    await File(pdfFilePath).copy(PDFPath.path);
+    print("PDF.path ${PDFPath.path}");
+
+    subfolderPath = await createSubfolder(value, PDFPath.path);
+
+    moveFileToSubfolder(PDFPath.path);
+    */
+
+    try{
+      final directory = await getExternalStorageDirectory();
+      final PDFPath = await File('${directory!.path}/${DateTime.now()}.pdf');
+
+      await PDFPath.writeAsBytes(await pdf.save());
+
+      print("$PDFPath PDFPath is here");
+
+      subfolderPath = await createSubfolder(value, PDFPath.path);
+
+      moveFileToSubfolder(PDFPath.path);
+
+      showInSnackBar("Image saved as a Document");
+    }
+
+    catch(e){
+      showInSnackBar(e.toString());
+    }
+  }
+
+  void showInSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(message),
+      duration: Duration(seconds: 2),
+    ));
+  }
+
 }
