@@ -23,6 +23,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   List<File> imageFiles = [];
   List<File> pdfFiles = [];
 
+
   List<String> labels = ['Images', 'PDFs'];
 
   late File file;
@@ -64,6 +65,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     setState(() {
       pdfFiles = PDFFiles!;
     });
+
   }
 
   @override
@@ -73,7 +75,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       child: Scaffold(
         appBar: AppBar(
           title: Text("MyDocs"),
-          bottom: TabBar(
+          bottom: const TabBar(
             tabs: [
               Tab(
                 text: "Categories",
@@ -92,10 +94,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => DocumentPicker.nothing()));
+                          builder: (context) => DocumentPicker("Invoice")));
                 },
                 icon: const Icon(Icons.add)),
-            IconButton(
+            /*IconButton(
                 icon: Icon(Icons.delete),
                 onPressed: () {
                   showDialog(
@@ -125,7 +127,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     },
                   );
                   setState(() {});
-                }),
+                }),*/
           ],
         ),
         body: TabBarView(
@@ -150,7 +152,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
   }
 
-  Widget allPDFs() {
+  /*Widget allPDFs() {
     return pdfFiles.isEmpty
         ? Center(child: Text("No Pdf file Chosen"))
         : GridView.builder(
@@ -172,7 +174,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
                   // child: Image.file(file),
                   Container(
-                      height: 260,
+height: 260,
                       width: 250,
                       child: GestureDetector(
                           onTap: () {
@@ -180,8 +182,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => PdfPreview(
+                                builder: (context) => PdfPreview.forDelete(
                                   PdfPath: pdfFiles[index].path,
+                                  index: index,
+                                  PdfList: pdfFiles,
                                 ),
                               ),
                             );
@@ -195,8 +199,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => PdfPreview(
+                                  builder: (context) => PdfPreview.forDelete(
                                     PdfPath: pdfFiles[index].path,
+                                    index: index,
+                                    PdfList: pdfFiles,
                                   ),
                                 ),
                               );
@@ -206,14 +212,87 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                       //   File(file.path),
                       // ),
                       ),
-                  Text(file.path.substring(70, 81)),
-                  Text(file.path.substring(81, 89)),
+
+
+                  Padding(
+                    padding: const EdgeInsets.only(left: 16.0),
+                    child: Text(file.path.substring(70)),
+                  ),
 
                   // Text(file.path),
                 ],
               );
             },
           );
+  }*/
+  Widget allPDFs() {
+    return pdfFiles.isEmpty
+        ? Center(child: Text("No Pdf file Chosen"))
+        : GridView.builder(
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        childAspectRatio: 1.5 / 3,
+        crossAxisSpacing: 20.0,
+        mainAxisSpacing: 30.0,
+      ),
+      itemCount: pdfFiles.length,
+      itemBuilder: (BuildContext context, int index) {
+        file = pdfFiles[index];
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Container(height: 250,width: 250,child: Image.file(file)),
+            // Text(file.path),
+
+            // child: Image.file(file),
+            Container(
+                height: 260,
+                width: 250,
+                child: GestureDetector(
+                    onTap: () {
+                      print("${index}");
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => PdfPreview.forDelete(
+                            PdfPath: pdfFiles[index].path,
+                            index: index,
+                            PdfList: pdfFiles,
+                          ),
+                        ),
+                      );
+                    },
+                    child: PdfThumbnail.fromFile(
+                      file.path,
+                      currentPage: 1,
+                      height: 260,
+                      
+                      backgroundColor: Colors.transparent,
+                      onPageClicked: (page) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => PdfPreview.forDelete(
+                              PdfPath: pdfFiles[index].path,
+                              index: index,
+                              PdfList: pdfFiles,
+                            ),
+                          ),
+                        );
+                      },
+                    ))
+              // SfPdfViewer.file(
+              //   File(file.path),
+              // ),
+            ),
+            Text(file.path.substring(70))
+
+            // Text(file.path),
+          ],
+        );
+      },
+    );
   }
 
   Widget allImages() {
@@ -228,7 +307,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             ),
             itemCount: imageFiles.length,
             itemBuilder: (BuildContext context, int index) {
+
               file = imageFiles[index];
+
               return GestureDetector(
                 onTap: () {
                   print("${index}");
@@ -248,12 +329,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   children: [
                     Container(height: 250, width: 250, child: Image.file(file)),
                     // Text(file.path),
-                    Text(file.path.substring(70, 81)),
-                    Text(file.path.substring(81, 89)),
 
-                    SizedBox(
-                      height: 30,
+
+                    Padding(
+                      padding: const EdgeInsets.only(left: 16.0),
+                      child: Text(file.path.substring(70)),
                     ),
+
 
                     // child: Image.file(file),
                     // Container(
@@ -272,27 +354,4 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           );
   }
 
-  Future<void> deleteAllFilesInFolder() async {
-    String folderPath =
-        "/storage/emulated/0/Android/data/com.example.document_organiser/files/";
-    Directory folder = Directory(folderPath);
-    if (await folder.exists()) {
-      List<FileSystemEntity> entities = folder.listSync();
-      for (FileSystemEntity entity in entities) {
-        if (entity is File) {
-          await entity.delete();
-          print('Deleted file: ${entity.path}');
-        }
-      }
-      setState(() {
-        imageFiles.removeRange(
-            0, imageFiles.length); // Clear the file list after deletion
-
-        pdfFiles.removeRange(0, pdfFiles.length);
-      });
-      print('All files in folder deleted successfully');
-    } else {
-      print('Folder does not exist');
-    }
-  }
 }

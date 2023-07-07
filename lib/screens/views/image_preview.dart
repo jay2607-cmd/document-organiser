@@ -40,8 +40,7 @@ class _ImagePreviewState extends State<ImagePreview> {
               child: IconButton(
                 icon: Icon(Icons.arrow_back),
                 onPressed: () {
-                  Navigator.pushReplacement(context,
-                      MaterialPageRoute(builder: (context) => HomeScreen()));
+                  _willPopCallback();
                 },
               ),
             ),
@@ -75,7 +74,7 @@ class _ImagePreviewState extends State<ImagePreview> {
                         child: ElevatedButton.icon(
                           onPressed: () async {
                             Share.shareFiles([widget.filePath],
-                                text: widget.filePath.substring(67, 86));
+                                text: widget.filePath.substring(70));
                           },
                           icon: Icon(Icons.share),
                           label: Text(""),
@@ -113,7 +112,7 @@ class _ImagePreviewState extends State<ImagePreview> {
                                         setState(() {
                                           deleteFile(
                                               widget.filePath, widget.index);
-                                          Navigator.pop(context);
+                                          // Navigator.pop(context);
                                           setState(() {});
                                         });
                                       },
@@ -162,6 +161,7 @@ class _ImagePreviewState extends State<ImagePreview> {
           context, MaterialPageRoute(builder: (context) => HomeScreen()));
     }
   }
+
 
   Future<bool> _willPopCallback() {
     Navigator.pushReplacement(

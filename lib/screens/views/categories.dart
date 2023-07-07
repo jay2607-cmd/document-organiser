@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:document_organiser/boxes/boxes.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/adapters.dart';
@@ -8,12 +10,12 @@ import 'category_insider.dart';
 
 class Categories extends StatefulWidget {
   // final bool isLoggedIn;
-   Categories({super.key
+  Categories({super.key
       // required this.isLoggedIn,
       });
 
-   int totalLength = 0;
-   Categories.withLength(int this.totalLength);
+  int totalLength = 0;
+  Categories.withLength(int this.totalLength);
 
   @override
   State<Categories> createState() => CategoriesState();
@@ -21,7 +23,6 @@ class Categories extends StatefulWidget {
 
 class CategoriesState extends State<Categories> {
   TextEditingController categoryController = TextEditingController();
-
 
   @override
   void initState() {
@@ -151,7 +152,6 @@ class CategoriesState extends State<Categories> {
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       body: ValueListenableBuilder<Box<Save>>(
         valueListenable: Boxes.getData().listenable(),
@@ -167,23 +167,25 @@ class CategoriesState extends State<Categories> {
               return GestureDetector(
                 onTap: () {
                   Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => CategoryInsider(
-                                categoryLabel: data[index].name,
-                              )));
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => CategoryInsider(
+                        categoryLabel: data[index].name,
+                      ),
+                    ),
+                  );
                 },
                 child: Card(
                   color: Color(0xffF6F7F8),
                   child: Container(
                     color: Colors.blue.shade200,
                     child: Stack(
-
                       children: [
                         Align(
                           alignment: Alignment.center,
                           child: Text("${data[index].name} ",
-                              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+                              style: const TextStyle(
+                                  fontSize: 15, fontWeight: FontWeight.bold)),
                         ),
                         Align(
                           alignment: Alignment.bottomRight,
@@ -195,8 +197,7 @@ class CategoriesState extends State<Categories> {
                                 builder: (BuildContext context) {
                                   return AlertDialog(
                                     title: const Text('Warning!',
-                                        style:
-                                            TextStyle(color: Colors.red)),
+                                        style: TextStyle(color: Colors.red)),
                                     content: const Text(
                                         'Do you really want to delete this Category!'),
                                     actions: [
@@ -210,7 +211,6 @@ class CategoriesState extends State<Categories> {
                                         child: Text('OK'),
                                         onPressed: () {
                                           delete(data[index]);
-
                                           Navigator.pop(context);
                                         },
                                       ),
@@ -277,8 +277,11 @@ class CategoriesState extends State<Categories> {
                       if (categoryExists) {
                         showInSnackBar("Category already exists!");
                         return; // Don't add the category if it already exists
+                      } else if (categoryController.text.trim().isEmpty) {
+                        showInSnackBar("Category Cannot be Empty");
+                      } else {
+                        box.add(data);
                       }
-                      box.add(data);
 
                       setState(() {});
                       categoryController.clear();
@@ -296,7 +299,9 @@ class CategoriesState extends State<Categories> {
   }
 
   void delete(Save save) async {
+    print(save);
     await save.delete();
+
     // Hive.box("SaveModel").clear();
   }
 

@@ -4,6 +4,7 @@ import 'package:document_organiser/screens/document_picker.dart';
 import 'package:document_organiser/screens/views/pdf_preview.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:pdf_thumbnail/pdf_thumbnail.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 
 import 'home_screen.dart';
@@ -184,8 +185,10 @@ class CategoryInsiderState extends State<CategoryInsider> {
                   Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => PdfPreview(
+                          builder: (context) => PdfPreview.forDelete(
                                 PdfPath: pdfFiles[index].path,
+                            index: index,
+                            PdfList: pdfFiles,
                               )));
                 },
                 child: Column(
@@ -199,10 +202,25 @@ class CategoryInsiderState extends State<CategoryInsider> {
                     Container(
                       height: 260,
                       width: 250,
-                      child: SfPdfViewer.file(
-                        File(file.path),
-                      ),
-                    ),
+                      child: PdfThumbnail.fromFile(
+                        file.path,
+                        scrollToCurrentPage: true,
+                        currentPage: 1,
+                        height: 260,
+                        backgroundColor: Colors.transparent,
+                        onPageClicked: (page) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => PdfPreview.forDelete(
+                                PdfPath: pdfFiles[index].path,
+                                index: index,
+                                PdfList: pdfFiles,
+                              ),
+                            ),
+                          );
+                        },
+                      )),
                     Text(file.path.substring(70, 81)),
                     Text(file.path.substring(81, 89)),
 

@@ -126,15 +126,17 @@ class DocumentPickerState extends State<DocumentPicker> {
               }),
           actions: [
             IconButton(
-              onPressed: () {
+              onPressed: () async {
                 if (isImagePreview) {
-                  createPDF();
-                  savePDF();
+                  await createPDF();
+                  await savePDF();
+                  showInSnackBar("Image saved as a Document");
+                  _willPopCallback();
+                } else if (isPDFPreview) {
+                  showInSnackBar("Already a Document File");
+                } else {
+                  showInSnackBar("No file Chosen");
                 }
-                else {
-                  print("Choose PNG file please");
-                }
-                _willPopCallback();
               },
               icon: Icon(Icons.picture_as_pdf_sharp),
             ),
@@ -151,7 +153,7 @@ class DocumentPickerState extends State<DocumentPicker> {
                     // moveFileToSubfolder(File(image!.path), value);
 
                     File imagePath =
-                        await File('${directory!.path}/${DateTime.now()}.png')
+                        await File('${directory!.path}/${DateTime.now().millisecondsSinceEpoch}.png')
                             .create();
                     await File(image!.path).copy(imagePath.path);
                     print("imagePath.path ${imagePath.path}");
@@ -160,9 +162,10 @@ class DocumentPickerState extends State<DocumentPicker> {
                     subfolderPath =
                         await createSubfolder(value, imagePath.path);
                     moveFileToSubfolder(imagePath.path);
-                  } else if (isPDFPreview) {
+                  }
+                  else if (isPDFPreview) {
                     final PDFPath =
-                        await File('${directory!.path}/${DateTime.now()}.pdf')
+                        await File('${directory!.path}/${DateTime.now().millisecondsSinceEpoch}.pdf')
                             .create();
                     await File(pdfFilePath).copy(PDFPath.path);
                     print("PDF.path ${PDFPath.path}");
@@ -171,8 +174,12 @@ class DocumentPickerState extends State<DocumentPicker> {
 
                     moveFileToSubfolder(PDFPath.path);
                   }
+                  if (isImagePreview || isPDFPreview) {
+                    _willPopCallback();
+                  } else {
+                    showInSnackBar("Please select a file to save");
+                  }
 
-                  _willPopCallback();
                   // Navigator.pop(context);
                 },
                 icon: Icon(Icons.save))
@@ -313,6 +320,8 @@ class DocumentPickerState extends State<DocumentPicker> {
   }
 
   GridView allPDFs() {
+    pdfFiles.sort((a, b) => a.lastModifiedSync()
+        .compareTo(b.lastModifiedSync()));
     return GridView.builder(
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
@@ -327,11 +336,15 @@ class DocumentPickerState extends State<DocumentPicker> {
           onTap: () {
             print("${index}");
             Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => PdfPreview(
-                          PdfPath: pdfFiles[index].path,
-                        )));
+              context,
+              MaterialPageRoute(
+                builder: (context) => PdfPreview.forDelete(
+                  PdfPath: pdfFiles[index].path,
+                  index: index,
+                  PdfList: pdfFiles,
+                ),
+              ),
+            );
           },
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -360,6 +373,11 @@ class DocumentPickerState extends State<DocumentPicker> {
   }
 
   GridView allImages() {
+    // imageFiles.sort((a, b) => a.path.substring(a.path.lastIndexOf("/") + 1)
+    //     .compareTo(b.path.substring(b.path.lastIndexOf("/") + 1)));
+    imageFiles.sort((a, b) => a.lastModifiedSync()
+        .compareTo(b.lastModifiedSync()));
+    // print('Sort by Age: ' + customers.toString());
     return GridView.builder(
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
@@ -444,7 +462,9 @@ class DocumentPickerState extends State<DocumentPicker> {
 
   Future<bool> _willPopCallback() {
     Navigator.pushReplacement(
-        context, MaterialPageRoute(builder: (context) => HomeScreen()));
+        context,
+        MaterialPageRoute(
+            builder: (builder) => HomeScreen()));
     return Future.value(true);
   }
 
@@ -475,10 +495,10 @@ class DocumentPickerState extends State<DocumentPicker> {
     moveFileToSubfolder(PDFPath.path);
     */
 
-    try{
+    try {
       final directory = await getExternalStorageDirectory();
-      final PDFPath = await File('${directory!.path}/${DateTime.now()}.pdf');
-
+      final PDFPath = await File('${directory!.path}/${DateTime.now().millisecondsSinceEpoch}.pdf');
+      print("PDFPAth : $PDFPath");
       await PDFPath.writeAsBytes(await pdf.save());
 
       print("$PDFPath PDFPath is here");
@@ -486,11 +506,7 @@ class DocumentPickerState extends State<DocumentPicker> {
       subfolderPath = await createSubfolder(value, PDFPath.path);
 
       moveFileToSubfolder(PDFPath.path);
-
-      showInSnackBar("Image saved as a Document");
-    }
-
-    catch(e){
+    } catch (e) {
       showInSnackBar(e.toString());
     }
   }
@@ -501,5 +517,4 @@ class DocumentPickerState extends State<DocumentPicker> {
       duration: Duration(seconds: 2),
     ));
   }
-
 }
