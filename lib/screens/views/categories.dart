@@ -1,3 +1,4 @@
+import 'dart:ffi';
 import 'dart:io';
 
 import 'package:document_organiser/boxes/boxes.dart';
@@ -23,6 +24,8 @@ class Categories extends StatefulWidget {
 
 class CategoriesState extends State<Categories> {
   TextEditingController categoryController = TextEditingController();
+  var data;
+  List<int> dataLegnth = [];
 
   @override
   void initState() {
@@ -33,7 +36,7 @@ class CategoriesState extends State<Categories> {
   Future<void> isLogin() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     if (prefs.getBool("isFirst") == null) {
-      var data = Save(name: "Invoice", image: "");
+      var data = Save(name: "Invoice", image: "",);
       var box = Boxes.getData();
       box.add(data);
 
@@ -54,7 +57,7 @@ class CategoriesState extends State<Categories> {
 
       box.add(data);
 
-      data = Save(name: "Ticket ", image: "");
+      data = Save(name: "Ticket", image: "");
       box = Boxes.getData();
       box.add(data);
 
@@ -112,7 +115,7 @@ class CategoriesState extends State<Categories> {
 
         box.add(data);
 
-        data = Save(name: "Ticket ", image: "");
+        data = Save(name: "Ticket", image: "");
         box = Boxes.getData();
         box.add(data);
 
@@ -150,13 +153,16 @@ class CategoriesState extends State<Categories> {
     }
   }
 
+  InheritanceTrial inheritanceTrial = InheritanceTrial();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: ValueListenableBuilder<Box<Save>>(
         valueListenable: Boxes.getData().listenable(),
         builder: (context, box, _) {
-          var data = box.values.toList().cast<Save>();
+          data = box.values.toList().cast<Save>();
+          dataLegnth.length =  data.length;
           print("data length ${data.length}");
           return GridView.builder(
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -222,6 +228,15 @@ class CategoriesState extends State<Categories> {
                               setState(() {});
                             },
                             icon: Icon(Icons.delete),
+                          ),
+                        ),
+                        Align(
+                          alignment: Alignment.topRight,
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Text(
+                                " (${inheritanceTrial.categoryLength()})",
+                                style: TextStyle(fontWeight: FontWeight.bold)),
                           ),
                         )
                         // SizedBox(
@@ -310,5 +325,14 @@ class CategoriesState extends State<Categories> {
       content: Text(message),
       duration: Duration(seconds: 2),
     ));
+  }
+}
+
+
+class InheritanceTrial extends CategoryInsiderState{
+  CategoryInsiderState categoryInsiderState = CategoryInsiderState();
+  int categoryLength() {
+    print("categoryLength ${imageFiles.length}");
+    return (imageFiles.length);
   }
 }

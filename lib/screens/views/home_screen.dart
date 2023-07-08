@@ -2,14 +2,13 @@ import 'dart:io';
 
 import 'package:document_organiser/screens/document_picker.dart';
 import 'package:document_organiser/screens/views/pdf_preview.dart';
-import 'package:document_organiser/screens/reusable_grid_view.dart';
 import 'package:document_organiser/screens/views/categories.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf_thumbnail/pdf_thumbnail.dart';
-import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 
+import '../../boxes/boxes.dart';
 import 'image_preview.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -23,6 +22,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   List<File> imageFiles = [];
   List<File> pdfFiles = [];
 
+  var identifier = new Map();
 
   List<String> labels = ['Images', 'PDFs'];
 
@@ -30,6 +30,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   @override
   void initState() {
+
     super.initState();
     setState(() {
       loadImages();
@@ -45,6 +46,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     print(directory);
     final files = directory?.listSync(recursive: true);
     final pngFiles = files?.whereType<File>().where((file) {
+      String filename = file.path.toLowerCase().split('/').last;
+      if(identifier.containsKey(filename.split(".")[0])){
+        identifier[filename.split(".")[0]] = (identifier[filename.split(".")[0]]) + 1;
+      } else{
+        identifier[filename.split(".")[0]] = 1;
+      }
       final extension = file.path.toLowerCase().split('.').last;
       return extension == 'png';
     }).toList();
@@ -70,21 +77,59 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
+    var box = Boxes.getData();
+
     return DefaultTabController(
       length: 3,
       child: Scaffold(
         appBar: AppBar(
           title: Text("MyDocs"),
-          bottom: const TabBar(
+          bottom: TabBar(
             tabs: [
               Tab(
-                text: "Categories",
+                child: RichText(
+                  text: TextSpan(children: [
+                    TextSpan(
+                      text:
+                      "Categories",
+                    ),
+                    TextSpan(
+                        text:
+                        " (${box.length})",
+                        style: TextStyle(fontWeight: FontWeight.bold)
+                    ),
+                  ]),
+                ),
               ),
               Tab(
-                text: "All Images",
+                child: RichText(
+                  text: TextSpan(children: [
+                    TextSpan(
+                      text:
+                      "All Images",
+                    ),
+                    TextSpan(
+                        text:
+                        " (${imageFiles.length})",
+                        style: TextStyle(fontWeight: FontWeight.bold)
+                    ),
+                  ]),
+                ),
               ),
               Tab(
-                text: "All PDFs",
+                child: RichText(
+                  text: TextSpan(children: [
+                    TextSpan(
+                      text:
+                      "All PDFs",
+                    ),
+                    TextSpan(
+                        text:
+                        " (${pdfFiles.length})",
+                        style: TextStyle(fontWeight: FontWeight.bold)
+                    ),
+                  ]),
+                ),
               ),
             ],
           ),
@@ -330,7 +375,6 @@ height: 260,
                     Container(height: 250, width: 250, child: Image.file(file)),
                     // Text(file.path),
 
-
                     Padding(
                       padding: const EdgeInsets.only(left: 16.0),
                       child: Text(file.path.substring(70)),
@@ -353,5 +397,14 @@ height: 260,
             },
           );
   }
+}
 
+
+
+class CategoriesLength extends CategoriesState{
+  CategoriesState categoriesState = CategoriesState();
+
+  int dataLength() {
+    return categoriesState.data;
+  }
 }

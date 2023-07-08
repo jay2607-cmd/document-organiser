@@ -19,8 +19,8 @@ class CategoryInsider extends StatefulWidget {
 }
 
 class CategoryInsiderState extends State<CategoryInsider> {
-  List<File> imageFiles = [];
-  List<File> pdfFiles = [];
+   List<File> imageFiles = [];
+   List<File> pdfFiles = [];
 
   late File file;
 
@@ -56,6 +56,7 @@ class CategoryInsiderState extends State<CategoryInsider> {
     setState(() {
       imageFiles = pngFiles;
     });
+    print("s length : ${imageFiles.length}");
   }
 
   Future<void> loadPDF() async {
@@ -66,8 +67,12 @@ class CategoryInsiderState extends State<CategoryInsider> {
 
     final subfolder = Directory(subfolderPath);
 
-    final files = subfolder.listSync(recursive: true);
-
+    var files;
+    try {
+      files = subfolder.listSync(recursive: true);
+    } catch (e) {
+      print(e);
+    }
     final PDFFiles = files.whereType<File>().where((file) {
       final extension = file.path.toLowerCase().split('.').last;
       return extension == 'pdf';
@@ -89,10 +94,29 @@ class CategoryInsiderState extends State<CategoryInsider> {
             bottom: TabBar(
               tabs: [
                 Tab(
-                  text: "${widget.categoryLabel} Images",
+                  child: RichText(
+                    text: TextSpan(children: [
+                      TextSpan(
+                        text: "${widget.categoryLabel} Images",
+                      ),
+                      TextSpan(
+                          text: " (${imageFiles.length})",
+                          style: TextStyle(fontWeight: FontWeight.bold)),
+                    ]),
+                  ),
+                  // text:  "${widget.categoryLabel} Images  (${imageFiles.length})",
                 ),
                 Tab(
-                  text: "${widget.categoryLabel} PDFs",
+                  child: RichText(
+                    text: TextSpan(children: [
+                      TextSpan(
+                        text: "${widget.categoryLabel} PDF's",
+                      ),
+                      TextSpan(
+                          text: " (${pdfFiles.length})",
+                          style: TextStyle(fontWeight: FontWeight.bold)),
+                    ]),
+                  ),
                 ),
               ],
             ),
@@ -144,7 +168,6 @@ class CategoryInsiderState extends State<CategoryInsider> {
                     );
                     setState(() {});
                   }),
-
             ],
           ),
           body: TabBarView(
@@ -187,8 +210,8 @@ class CategoryInsiderState extends State<CategoryInsider> {
                       MaterialPageRoute(
                           builder: (context) => PdfPreview.forDelete(
                                 PdfPath: pdfFiles[index].path,
-                            index: index,
-                            PdfList: pdfFiles,
+                                index: index,
+                                PdfList: pdfFiles,
                               )));
                 },
                 child: Column(
@@ -200,27 +223,27 @@ class CategoryInsiderState extends State<CategoryInsider> {
 
                     // child: Image.file(file),
                     Container(
-                      height: 260,
-                      width: 250,
-                      child: PdfThumbnail.fromFile(
-                        file.path,
-                        scrollToCurrentPage: true,
-                        currentPage: 1,
                         height: 260,
-                        backgroundColor: Colors.transparent,
-                        onPageClicked: (page) {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => PdfPreview.forDelete(
-                                PdfPath: pdfFiles[index].path,
-                                index: index,
-                                PdfList: pdfFiles,
+                        width: 250,
+                        child: PdfThumbnail.fromFile(
+                          file.path,
+                          scrollToCurrentPage: true,
+                          currentPage: 1,
+                          height: 260,
+                          backgroundColor: Colors.transparent,
+                          onPageClicked: (page) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => PdfPreview.forDelete(
+                                  PdfPath: pdfFiles[index].path,
+                                  index: index,
+                                  PdfList: pdfFiles,
+                                ),
                               ),
-                            ),
-                          );
-                        },
-                      )),
+                            );
+                          },
+                        )),
                     Text(file.path.substring(70, 81)),
                     Text(file.path.substring(81, 89)),
 
@@ -317,5 +340,4 @@ class CategoryInsiderState extends State<CategoryInsider> {
       print('Folder does not exist');
     }
   }
-
 }
