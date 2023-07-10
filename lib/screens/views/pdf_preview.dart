@@ -21,58 +21,61 @@ class PdfPreview extends StatefulWidget {
 class _PdfPreviewState extends State<PdfPreview> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("PDF Preview"),
-        actions: [
-          IconButton(
-            onPressed: () async {
-              Share.shareFiles([widget.PdfPath],
-                  text: widget.PdfPath.substring(67, 86));
-            },
-            icon: Icon(Icons.share),
-          ),
-          IconButton(
-            onPressed: () async {
-
-                showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return AlertDialog(
-                      title: const Text('Warning!',
-                          style: TextStyle(color: Colors.red)),
-                      content: const Text(
-                          'Are you really want to delete this file!'),
-                      actions: [
-                        TextButton(
-                          child: Text('Cancel'),
-                          onPressed: () {
-                            Navigator.pop(context);
-                          },
-                        ),
-                        TextButton(
-                          child: Text('OK'),
-                          onPressed: () {
-                            setState(() {
-                              deleteFile(
-                                  widget.PdfPath, widget.index);
-                              Navigator.pop(context);
-                              setState(() {});
-                            });
-                          },
-                        ),
-                      ],
-                    );
-                  },
-                );
+    return WillPopScope(
+      onWillPop: _willPopCallback,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text("PDF Preview"),
+          actions: [
+            IconButton(
+              onPressed: () async {
+                Share.shareFiles([widget.PdfPath],
+                    text: widget.PdfPath.substring(67, 86));
               },
+              icon: Icon(Icons.share),
+            ),
+            IconButton(
+              onPressed: () async {
+
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: const Text('Warning!',
+                            style: TextStyle(color: Colors.red)),
+                        content: const Text(
+                            'Are you really want to delete this file!'),
+                        actions: [
+                          TextButton(
+                            child: Text('Cancel'),
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                          ),
+                          TextButton(
+                            child: Text('OK'),
+                            onPressed: () {
+                              setState(() {
+                                deleteFile(
+                                    widget.PdfPath, widget.index);
+                                Navigator.pop(context);
+                                setState(() {});
+                              });
+                            },
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                },
 
 
-            icon: Icon(Icons.delete),
-          ),
-        ],
+              icon: Icon(Icons.delete),
+            ),
+          ],
+        ),
+        body: SfPdfViewer.file(File(widget.PdfPath)),
       ),
-      body: SfPdfViewer.file(File(widget.PdfPath)),
     );
   }
 
@@ -98,6 +101,10 @@ class _PdfPreviewState extends State<PdfPreview> {
           context, MaterialPageRoute(builder: (context) => HomeScreen()));
     }
   }
-
+  Future<bool> _willPopCallback() {
+    Navigator.pushReplacement(
+        context, MaterialPageRoute(builder: (context) => HomeScreen()));
+    return Future.value(true);
+  }
 
 }

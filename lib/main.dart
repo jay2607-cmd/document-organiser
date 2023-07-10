@@ -2,6 +2,7 @@ import 'package:document_organiser/database/save.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive/hive.dart';
+import 'package:hive_flutter/adapters.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -29,6 +30,10 @@ Future<void> main() async {
 
   await Hive.openBox<Save>("saveCategories");
 
+  // for bookmark
+  await Hive.initFlutter();
+  await Hive.openBox("favorites");
+
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitDown,
     DeviceOrientation.portraitUp,
@@ -43,7 +48,7 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return  MaterialApp(
+    return const MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Document Organiser',
       home: HomeScreen(),

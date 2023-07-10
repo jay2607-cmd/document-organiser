@@ -4,7 +4,7 @@ import 'package:document_organiser/screens/document_picker.dart';
 import 'package:document_organiser/screens/views/pdf_preview.dart';
 import 'package:document_organiser/screens/views/categories.dart';
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
+import 'package:hive_flutter/adapters.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf_thumbnail/pdf_thumbnail.dart';
 
@@ -30,7 +30,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   @override
   void initState() {
-
     super.initState();
     setState(() {
       loadImages();
@@ -47,9 +46,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     final files = directory?.listSync(recursive: true);
     final pngFiles = files?.whereType<File>().where((file) {
       String filename = file.path.toLowerCase().split('/').last;
-      if(identifier.containsKey(filename.split(".")[0])){
-        identifier[filename.split(".")[0]] = (identifier[filename.split(".")[0]]) + 1;
-      } else{
+      if (identifier.containsKey(filename.split(".")[0])) {
+        identifier[filename.split(".")[0]] =
+            (identifier[filename.split(".")[0]]) + 1;
+      } else {
         identifier[filename.split(".")[0]] = 1;
       }
       final extension = file.path.toLowerCase().split('.').last;
@@ -72,126 +72,120 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     setState(() {
       pdfFiles = PDFFiles!;
     });
-
   }
 
   @override
   Widget build(BuildContext context) {
     var box = Boxes.getData();
 
-    return DefaultTabController(
-      length: 3,
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text("MyDocs"),
-          bottom: TabBar(
-            tabs: [
-              Tab(
-                child: RichText(
-                  text: TextSpan(children: [
-                    TextSpan(
-                      text:
-                      "Categories",
-                    ),
-                    TextSpan(
-                        text:
-                        " (${box.length})",
-                        style: TextStyle(fontWeight: FontWeight.bold)
-                    ),
-                  ]),
+    return WillPopScope(
+      onWillPop: () => showExitPopup(context),
+      child: DefaultTabController(
+        length: 3,
+        child: Scaffold(
+          appBar: AppBar(
+            title: Text("MyDocs"),
+            bottom: TabBar(
+              tabs: [
+                Tab(
+                  child: RichText(
+                    text: TextSpan(children: [
+                      TextSpan(
+                        text: "Categories",
+                      ),
+                      TextSpan(
+                          text: " (${box.length})",
+                          style: TextStyle(fontWeight: FontWeight.bold)),
+                    ]),
+                  ),
                 ),
+                Tab(
+                  child: RichText(
+                    text: TextSpan(children: [
+                      TextSpan(
+                        text: "All Images",
+                      ),
+                      TextSpan(
+                          text: " (${imageFiles.length})",
+                          style: TextStyle(fontWeight: FontWeight.bold)),
+                    ]),
+                  ),
+                ),
+                Tab(
+                  child: RichText(
+                    text: TextSpan(children: [
+                      TextSpan(
+                        text: "All PDFs",
+                      ),
+                      TextSpan(
+                          text: " (${pdfFiles.length})",
+                          style: TextStyle(fontWeight: FontWeight.bold)),
+                    ]),
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              IconButton(
+                  onPressed: () {
+                    Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => DocumentPicker("Invoice")));
+                  },
+                  icon: const Icon(Icons.add)),
+              /*IconButton(
+                  icon: Icon(Icons.delete),
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: const Text('Warning!',
+                              style: TextStyle(color: Colors.red)),
+                          content: const Text(
+                              'Do you really want to delete all images!'),
+                          actions: [
+                            TextButton(
+                              child: const Text('Cancel'),
+                              onPressed: () {
+                                Navigator.pop(context);
+                              },
+                            ),
+                            TextButton(
+                              child: Text('OK'),
+                              onPressed: () {
+                                deleteAllFilesInFolder();
+                                Navigator.pop(context);
+                              },
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                    setState(() {});
+                  }),*/
+            ],
+          ),
+          body: TabBarView(
+            children: [
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 16),
+                child:
+                    Categories.withLength(imageFiles.length + pdfFiles.length),
               ),
-              Tab(
-                child: RichText(
-                  text: TextSpan(children: [
-                    TextSpan(
-                      text:
-                      "All Images",
-                    ),
-                    TextSpan(
-                        text:
-                        " (${imageFiles.length})",
-                        style: TextStyle(fontWeight: FontWeight.bold)
-                    ),
-                  ]),
-                ),
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8.0, vertical: 16),
+                child: allImages(),
               ),
-              Tab(
-                child: RichText(
-                  text: TextSpan(children: [
-                    TextSpan(
-                      text:
-                      "All PDFs",
-                    ),
-                    TextSpan(
-                        text:
-                        " (${pdfFiles.length})",
-                        style: TextStyle(fontWeight: FontWeight.bold)
-                    ),
-                  ]),
-                ),
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16),
+                child: allPDFs(),
               ),
             ],
           ),
-          actions: [
-            IconButton(
-                onPressed: () {
-                  Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => DocumentPicker("Invoice")));
-                },
-                icon: const Icon(Icons.add)),
-            /*IconButton(
-                icon: Icon(Icons.delete),
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return AlertDialog(
-                        title: const Text('Warning!',
-                            style: TextStyle(color: Colors.red)),
-                        content: const Text(
-                            'Do you really want to delete all images!'),
-                        actions: [
-                          TextButton(
-                            child: const Text('Cancel'),
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                          ),
-                          TextButton(
-                            child: Text('OK'),
-                            onPressed: () {
-                              deleteAllFilesInFolder();
-                              Navigator.pop(context);
-                            },
-                          ),
-                        ],
-                      );
-                    },
-                  );
-                  setState(() {});
-                }),*/
-          ],
-        ),
-        body: TabBarView(
-          children: [
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 16),
-              child: Categories.withLength(imageFiles.length + pdfFiles.length),
-            ),
-            Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16),
-              child: allImages(),
-            ),
-            Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16),
-              child: allPDFs(),
-            ),
-          ],
         ),
       ),
     );
@@ -273,135 +267,266 @@ height: 260,
   Widget allPDFs() {
     return pdfFiles.isEmpty
         ? Center(child: Text("No Pdf file Chosen"))
-        : GridView.builder(
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        childAspectRatio: 1.5 / 3,
-        crossAxisSpacing: 20.0,
-        mainAxisSpacing: 30.0,
-      ),
-      itemCount: pdfFiles.length,
-      itemBuilder: (BuildContext context, int index) {
-        file = pdfFiles[index];
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Container(height: 250,width: 250,child: Image.file(file)),
-            // Text(file.path),
-
-            // child: Image.file(file),
-            Container(
-                height: 260,
-                width: 250,
-                child: GestureDetector(
-                    onTap: () {
-                      print("${index}");
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => PdfPreview.forDelete(
-                            PdfPath: pdfFiles[index].path,
-                            index: index,
-                            PdfList: pdfFiles,
-                          ),
-                        ),
-                      );
-                    },
-                    child: PdfThumbnail.fromFile(
-                      file.path,
-                      currentPage: 1,
-                      height: 260,
-                      
-                      backgroundColor: Colors.transparent,
-                      onPageClicked: (page) {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => PdfPreview.forDelete(
-                              PdfPath: pdfFiles[index].path,
-                              index: index,
-                              PdfList: pdfFiles,
+        : ValueListenableBuilder(
+            valueListenable: Hive.box("favorites").listenable(),
+            builder: (BuildContext context, Box<dynamic> box, Widget? child) {
+              return ListView.builder(
+                /*gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  childAspectRatio: 1.5 / 3,
+                  crossAxisSpacing: 20.0,
+                  mainAxisSpacing: 30.0,
+                ),*/
+                itemCount: pdfFiles.length,
+                itemBuilder: (BuildContext context, int index) {
+                  final isFavorites = box.get(index) != null;
+                  file = pdfFiles[index];
+                  return Card(
+                    child: Row(
+                      children: [
+                        Container(
+                            height: 100,
+                            width: 80,
+                            child: GestureDetector(
+                                onTap: () {
+                                  print("${index}");
+                                  Navigator.pushReplacement(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          PdfPreview.forDelete(
+                                        PdfPath: pdfFiles[index].path,
+                                        index: index,
+                                        PdfList: pdfFiles,
+                                      ),
+                                    ),
+                                  );
+                                },
+                                child: PdfThumbnail.fromFile(
+                                  file.path,
+                                  currentPage: 1,
+                                  height: 100,
+                                  backgroundColor: Colors.transparent,
+                                  onPageClicked: (page) {
+                                    Navigator.pushReplacement(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            PdfPreview.forDelete(
+                                          PdfPath: pdfFiles[index].path,
+                                          index: index,
+                                          PdfList: pdfFiles,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ))
+                            // SfPdfViewer.file(
+                            //   File(file.path),
+                            // ),
                             ),
-                          ),
-                        );
-                      },
-                    ))
-              // SfPdfViewer.file(
-              //   File(file.path),
-              // ),
-            ),
-            Text(file.path.substring(70))
-
-            // Text(file.path),
-          ],
-        );
-      },
-    );
+                        Align(
+                            alignment: Alignment.center,
+                            child: Text(file.path.substring(70))),
+                        Align(
+                          alignment: Alignment.topRight,
+                          child: IconButton(
+                              onPressed: () async {
+                                if (isFavorites) {
+                                  await box.delete(index);
+                                } else {
+                                  await box.put(index, file.path);
+                                  const snackBar = SnackBar(
+                                    content: Text(
+                                      "Added successfully",
+                                    ),
+                                    duration: Duration(seconds: 1),
+                                  );
+                                  ScaffoldMessenger.of(context)
+                                      .showSnackBar(snackBar);
+                                }
+                              },
+                              icon: isFavorites
+                                  ? Icon(
+                                      Icons.bookmark,
+                                      color: Colors.red,
+                                    )
+                                  : Icon(
+                                      Icons.bookmark_border,
+                                      color: Colors.red,
+                                    )),
+                        )
+                      ],
+                    ),
+                  );
+                },
+              );
+            });
   }
 
-  Widget allImages() {
+  allImages() {
     return imageFiles.isEmpty
         ? Center(child: Text("No Images Chosen"))
-        : GridView.builder(
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              childAspectRatio: 1.5 / 3,
-              crossAxisSpacing: 20.0,
-              mainAxisSpacing: 30.0,
-            ),
-            itemCount: imageFiles.length,
-            itemBuilder: (BuildContext context, int index) {
+        : ValueListenableBuilder(
+            valueListenable: Hive.box("favorites").listenable(),
+            builder: (BuildContext context, Box<dynamic> box, Widget? child) {
+              return ListView.builder(
+                /*gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 1,
+            childAspectRatio: 1.5 / 3,
+            // crossAxisSpacing: 20.0,
+            // mainAxisSpacing: 30.0,
+          ),*/
+                itemCount: imageFiles.length,
+                itemBuilder: (BuildContext context, index) {
+                  final isFavorites = box.get(index) != null;
+                  file = imageFiles[index];
 
-              file = imageFiles[index];
+                  return GestureDetector(
+                    onTap: () {
+                      print("${index}");
+                      Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => ImagePreview(
+                                    filePath: imageFiles[index].path,
+                                    file: imageFiles[index],
+                                    imageFiles: imageFiles,
+                                    index: index,
+                                  )));
+                    },
+                    child: Container(
+                      color: Colors.grey.shade200,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 4.0, vertical: 1),
+                        child: Card(
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Stack(
+                              // crossAxisAlignment: CrossAxisAlignment.center,
+                              // mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Container(
+                                      height: 70,
+                                      width: 80,
+                                      child: Image.file(file)),
+                                ),
+                                // Text(file.path),
+                                Padding(
+                                  padding:
+                                      const EdgeInsets.only(top: 12.0, left: 6),
+                                  child: Align(
+                                    alignment: Alignment.center,
+                                    child: SingleChildScrollView(
+                                        scrollDirection: Axis.horizontal,
+                                        child: Text(
+                                          file.path.substring(70),
+                                        )),
+                                  ),
+                                ),
 
-              return GestureDetector(
-                onTap: () {
-                  print("${index}");
-                  Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => ImagePreview(
-                                filePath: imageFiles[index].path,
-                                file: imageFiles[index],
-                                imageFiles: imageFiles,
-                                index: index,
-                              )));
-                },
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(height: 250, width: 250, child: Image.file(file)),
-                    // Text(file.path),
+                                Align(
+                                  alignment: Alignment.topRight,
+                                  child: IconButton(
+                                      onPressed: () async {
+                                        if (isFavorites) {
+                                          await box.delete(index);
+                                        } else {
+                                          await box.put(index, file.path);
+                                          const snackBar = SnackBar(
+                                            content: Text(
+                                              "Added successfully",
+                                            ),
+                                            duration: Duration(seconds: 1),
+                                          );
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(snackBar);
+                                        }
+                                      },
+                                      icon: isFavorites
+                                          ? Icon(
+                                              Icons.bookmark,
+                                              color: Colors.red,
+                                            )
+                                          : Icon(
+                                              Icons.bookmark_border,
+                                              color: Colors.red,
+                                            )),
+                                )
 
-                    Padding(
-                      padding: const EdgeInsets.only(left: 16.0),
-                      child: Text(file.path.substring(70)),
+                                // child: Image.file(file),
+                                // Container(
+                                //   height: 260,
+                                //   width: 250,
+                                //   child: SfPdfViewer.file(
+                                //     File(file.path),
+                                //   ),
+                                // ),
+
+                                // Text(file.path),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
-
-
-                    // child: Image.file(file),
-                    // Container(
-                    //   height: 260,
-                    //   width: 250,
-                    //   child: SfPdfViewer.file(
-                    //     File(file.path),
-                    //   ),
-                    // ),
-
-                    // Text(file.path),
-                  ],
-                ),
+                  );
+                },
               );
-            },
+            });
+  }
+
+  Future<bool> showExitPopup(context) async {
+    return await showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            content: Container(
+              height: 90,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("Do you want to exit?"),
+                  SizedBox(height: 20),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () {
+                            print('yes selected');
+                            exit(0);
+                          },
+                          child: Text("Yes"),
+                          style: ElevatedButton.styleFrom(primary: Colors.red),
+                        ),
+                      ),
+                      SizedBox(width: 15),
+                      Expanded(
+                          child: ElevatedButton(
+                        onPressed: () {
+                          print('no selected');
+                          Navigator.of(context).pop();
+                        },
+                        child:
+                            Text("No", style: TextStyle(color: Colors.black)),
+                        style: ElevatedButton.styleFrom(
+                          primary: Colors.white,
+                        ),
+                      ))
+                    ],
+                  )
+                ],
+              ),
+            ),
           );
+        });
   }
 }
 
-
-
-class CategoriesLength extends CategoriesState{
+class CategoriesLength extends CategoriesState {
   CategoriesState categoriesState = CategoriesState();
 
   int dataLength() {

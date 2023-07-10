@@ -112,7 +112,7 @@ class _ImagePreviewState extends State<ImagePreview> {
                                         setState(() {
                                           deleteFile(
                                               widget.filePath, widget.index);
-                                          // Navigator.pop(context);
+                                          Navigator.pop(context);
                                           setState(() {});
                                         });
                                       },

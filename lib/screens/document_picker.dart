@@ -375,8 +375,6 @@ class DocumentPickerState extends State<DocumentPicker> {
   GridView allImages() {
     // imageFiles.sort((a, b) => a.path.substring(a.path.lastIndexOf("/") + 1)
     //     .compareTo(b.path.substring(b.path.lastIndexOf("/") + 1)));
-    imageFiles.sort((a, b) => a.lastModifiedSync()
-        .compareTo(b.lastModifiedSync()));
     // print('Sort by Age: ' + customers.toString());
     return GridView.builder(
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(

@@ -36,7 +36,7 @@ class CategoriesState extends State<Categories> {
   Future<void> isLogin() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     if (prefs.getBool("isFirst") == null) {
-      var data = Save(name: "Invoice", image: "",);
+      var data = Save(name: "Invoice", image: "");
       var box = Boxes.getData();
       box.add(data);
 
@@ -54,7 +54,6 @@ class CategoriesState extends State<Categories> {
 
       data = Save(name: "Business", image: "");
       box = Boxes.getData();
-
       box.add(data);
 
       data = Save(name: "Ticket", image: "");
@@ -162,7 +161,7 @@ class CategoriesState extends State<Categories> {
         valueListenable: Boxes.getData().listenable(),
         builder: (context, box, _) {
           data = box.values.toList().cast<Save>();
-          dataLegnth.length =  data.length;
+          // dataLegnth.length =  data.length;
           print("data length ${data.length}");
           return GridView.builder(
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(

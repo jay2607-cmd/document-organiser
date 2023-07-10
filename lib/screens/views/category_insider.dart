@@ -285,7 +285,7 @@ class CategoryInsiderState extends State<CategoryInsider> {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Container(height: 250, width: 250, child: Image.file(file)),
+                    Container(height: 250, width: 250, child: Image.file(imageFiles[index])),
                     // Text(file.path),
                     Text(file.path.substring(70, 81)),
                     Text(file.path.substring(81, 89)),
