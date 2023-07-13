@@ -4,4 +4,5 @@ import 'package:hive/hive.dart';
 
 class Boxes{
   static Box<Save> getData() => Hive.box<Save>("saveCategories");
+
 }

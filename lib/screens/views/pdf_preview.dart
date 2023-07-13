@@ -85,9 +85,10 @@ class _PdfPreviewState extends State<PdfPreview> {
       if (await file.exists()) {
         await file.delete();
         setState(() {
-          widget.PdfList.remove(file);
+
           widget.PdfList
-              .removeAt(index); // Remove the deleted file from the list
+              .removeAt(index);
+          widget.PdfList.remove(file);// Remove the deleted file from the list
         });
         // widget.imageFiles.removeAt(index);
 
@@ -96,11 +97,12 @@ class _PdfPreviewState extends State<PdfPreview> {
         print('$filePath deleted successfully');
       }
     } catch (e) {
-      // print('Error while deleting file: $e');
+      print('Error while deleting file: $e');
       Navigator.pushReplacement(
           context, MaterialPageRoute(builder: (context) => HomeScreen()));
     }
   }
+
   Future<bool> _willPopCallback() {
     Navigator.pushReplacement(
         context, MaterialPageRoute(builder: (context) => HomeScreen()));

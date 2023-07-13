@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'dart:io';
 
+import 'package:document_organiser/logic/account.dart';
 import 'package:document_organiser/screens/document_picker.dart';
 import 'package:document_organiser/screens/views/pdf_preview.dart';
 import 'package:document_organiser/screens/views/categories.dart';
@@ -21,6 +23,8 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   List<File> imageFiles = [];
   List<File> pdfFiles = [];
+  int base = -1;
+  int check = -2;
 
   var identifier = new Map();
 
@@ -30,46 +34,60 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   @override
   void initState() {
-    super.initState();
     setState(() {
       loadImages();
       loadPDF();
     });
     print("initState");
     WidgetsBinding.instance.addObserver(this);
+
+    super.initState();
   }
 
   Future<void> loadImages() async {
+    base = 0;
     // final directory = await getApplicationDocumentsDirectory();
     final directory = await getExternalStorageDirectory();
     print(directory);
     final files = directory?.listSync(recursive: true);
     final pngFiles = files?.whereType<File>().where((file) {
-      String filename = file.path.toLowerCase().split('/').last;
-      if (identifier.containsKey(filename.split(".")[0])) {
-        identifier[filename.split(".")[0]] =
-            (identifier[filename.split(".")[0]]) + 1;
+      String filename = file.path.toLowerCase().split('files/').last;
+      print("New Data List ==>> ${filename.split("/")[0]}");
+      if (identifier.containsKey(filename.split("/")[0])) {
+        identifier[filename.split("/")[0]] =
+            (identifier[filename.split("/")[0]]) + 1;
       } else {
-        identifier[filename.split(".")[0]] = 1;
+        identifier[filename.split("/")[0]] = 1;
       }
       final extension = file.path.toLowerCase().split('.').last;
       return extension == 'png';
     }).toList();
     setState(() {
+      check = 0;
       imageFiles = pngFiles!;
     });
   }
 
   Future<void> loadPDF() async {
+    base = 0;
     // final directory = await getApplicationDocumentsDirectory();
     final directory = await getExternalStorageDirectory();
     print(directory);
     final files = directory?.listSync(recursive: true);
     final PDFFiles = files?.whereType<File>().where((file) {
+      String filename = file.path.toLowerCase().split('files/').last;
+      print("New Data List ==>> ${filename.split("/")[0]}");
+      if (identifier.containsKey(filename.split("/")[0])) {
+        identifier[filename.split("/")[0]] =
+            (identifier[filename.split("/")[0]]) + 1;
+      } else {
+        identifier[filename.split("/")[0]] = 1;
+      }
       final extension = file.path.toLowerCase().split('.').last;
       return extension == 'pdf';
     }).toList();
     setState(() {
+      check = 0;
       pdfFiles = PDFFiles!;
     });
   }
@@ -77,7 +95,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     var box = Boxes.getData();
-
+    // print("identifier size-->> ${identifier.length}");
     return WillPopScope(
       onWillPop: () => showExitPopup(context),
       child: DefaultTabController(
@@ -134,6 +152,32 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                             builder: (context) => DocumentPicker("Invoice")));
                   },
                   icon: const Icon(Icons.add)),
+              PopupMenuButton<String>(
+                icon: Icon(Icons.more_vert),
+                onSelected: (value) {
+                  // Handle menu item selection
+                  if (value == 'security') {
+                    // Perform action for menu item 1
+
+                    // push to the account class
+                    Navigator.push(context,
+                        MaterialPageRoute(builder: (context) => Account()));
+                  } else if (value == 'menu_item2') {
+                    // Perform action for menu item 2
+                  }
+                },
+                itemBuilder: (context) => [
+                  PopupMenuItem(
+                    value: 'security',
+                    child: Text('Security'),
+                  ),
+                  PopupMenuItem(
+                    value: 'menu_item2',
+                    child: Text('Menu Item 2'),
+                  ),
+                ],
+              )
+
               /*IconButton(
                   icon: Icon(Icons.delete),
                   onPressed: () {
@@ -171,8 +215,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             children: [
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 16),
-                child:
-                    Categories.withLength(imageFiles.length + pdfFiles.length),
+                child: Categories.withLength(
+                    imageFiles.length + pdfFiles.length, identifier),
               ),
               Padding(
                 padding:
@@ -281,15 +325,35 @@ height: 260,
                 itemBuilder: (BuildContext context, int index) {
                   final isFavorites = box.get(index) != null;
                   file = pdfFiles[index];
-                  return Card(
-                    child: Row(
-                      children: [
-                        Container(
-                            height: 100,
-                            width: 80,
-                            child: GestureDetector(
-                                onTap: () {
-                                  print("${index}");
+                  return GestureDetector(
+                    onTap: () {
+                      print("${index}");
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => PdfPreview.forDelete(
+                            PdfPath: pdfFiles[index].path,
+                            index: index,
+                            PdfList: pdfFiles,
+                          ),
+                        ),
+                      );
+                    },
+                    child: Card(
+                      child: Stack(
+                        children: [
+                          Container(
+                              height: 120,
+                              width: 80,
+                              child: PdfThumbnail.fromFile(
+                                file.path,
+                                currentPage: 1,
+                                height: 120,
+                                currentPageDecoration: BoxDecoration(
+                                    border:
+                                        Border.all(color: Colors.transparent)),
+                                backgroundColor: Colors.transparent,
+                                onPageClicked: (page) {
                                   Navigator.pushReplacement(
                                     context,
                                     MaterialPageRoute(
@@ -302,61 +366,50 @@ height: 260,
                                     ),
                                   );
                                 },
-                                child: PdfThumbnail.fromFile(
-                                  file.path,
-                                  currentPage: 1,
-                                  height: 100,
-                                  backgroundColor: Colors.transparent,
-                                  onPageClicked: (page) {
-                                    Navigator.pushReplacement(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            PdfPreview.forDelete(
-                                          PdfPath: pdfFiles[index].path,
-                                          index: index,
-                                          PdfList: pdfFiles,
+                              )
+                              // SfPdfViewer.file(
+                              //   File(file.path),
+                              // ),
+                              ),
+                          Padding(
+                            padding: const EdgeInsets.only(top: 35.0),
+                            child: Align(
+                                alignment: Alignment.topCenter,
+                                child: Text(file.path.substring(70))),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(top: 25.0),
+                            child: Align(
+                              alignment: Alignment.topRight,
+                              child: IconButton(
+                                  onPressed: () async {
+                                    if (isFavorites) {
+                                      await box.delete(index);
+                                    } else {
+                                      await box.put(index, file.path);
+                                      const snackBar = SnackBar(
+                                        content: Text(
+                                          "Added successfully",
                                         ),
-                                      ),
-                                    );
+                                        duration: Duration(seconds: 1),
+                                      );
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(snackBar);
+                                    }
                                   },
-                                ))
-                            // SfPdfViewer.file(
-                            //   File(file.path),
-                            // ),
+                                  icon: isFavorites
+                                      ? Icon(
+                                          Icons.bookmark,
+                                          color: Colors.red,
+                                        )
+                                      : Icon(
+                                          Icons.bookmark_border,
+                                          color: Colors.red,
+                                        )),
                             ),
-                        Align(
-                            alignment: Alignment.center,
-                            child: Text(file.path.substring(70))),
-                        Align(
-                          alignment: Alignment.topRight,
-                          child: IconButton(
-                              onPressed: () async {
-                                if (isFavorites) {
-                                  await box.delete(index);
-                                } else {
-                                  await box.put(index, file.path);
-                                  const snackBar = SnackBar(
-                                    content: Text(
-                                      "Added successfully",
-                                    ),
-                                    duration: Duration(seconds: 1),
-                                  );
-                                  ScaffoldMessenger.of(context)
-                                      .showSnackBar(snackBar);
-                                }
-                              },
-                              icon: isFavorites
-                                  ? Icon(
-                                      Icons.bookmark,
-                                      color: Colors.red,
-                                    )
-                                  : Icon(
-                                      Icons.bookmark_border,
-                                      color: Colors.red,
-                                    )),
-                        )
-                      ],
+                          )
+                        ],
+                      ),
                     ),
                   );
                 },

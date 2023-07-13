@@ -16,7 +16,8 @@ class Categories extends StatefulWidget {
       });
 
   int totalLength = 0;
-  Categories.withLength(int this.totalLength);
+  Map? identifier;
+  Categories.withLength(int this.totalLength,Map this.identifier);
 
   @override
   State<Categories> createState() => CategoriesState();
@@ -162,7 +163,7 @@ class CategoriesState extends State<Categories> {
         builder: (context, box, _) {
           data = box.values.toList().cast<Save>();
           // dataLegnth.length =  data.length;
-          print("data length ${data.length}");
+          print("INdetifie length ${widget.identifier!.length}");
           return GridView.builder(
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 3,
@@ -233,8 +234,11 @@ class CategoriesState extends State<Categories> {
                           alignment: Alignment.topRight,
                           child: Padding(
                             padding: const EdgeInsets.all(8.0),
+
                             child: Text(
-                                " (${inheritanceTrial.categoryLength()})",
+                                widget.identifier!.containsKey(data[index].name)?""
+                                    "(${widget.identifier?[data[index]]})"
+                                    :"(0)",
                                 style: TextStyle(fontWeight: FontWeight.bold)),
                           ),
                         )

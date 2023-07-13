@@ -1,4 +1,6 @@
 import 'package:document_organiser/database/save.dart';
+import 'package:document_organiser/screens/authentication.dart';
+import 'package:document_organiser/screens/splash.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive/hive.dart';
@@ -6,6 +8,7 @@ import 'package:hive_flutter/adapters.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'database/password.dart';
 import 'screens/views/home_screen.dart';
 
 Future<void> main() async {
@@ -30,6 +33,7 @@ Future<void> main() async {
 
   await Hive.openBox<Save>("saveCategories");
 
+
   // for bookmark
   await Hive.initFlutter();
   await Hive.openBox("favorites");
@@ -51,7 +55,7 @@ class MyApp extends StatelessWidget {
     return const MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Document Organiser',
-      home: HomeScreen(),
+      home: SplashScreen(),
     );
   }
 }
