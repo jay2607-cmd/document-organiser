@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:document_organiser/logic/account.dart';
 import 'package:document_organiser/screens/document_picker.dart';
 import 'package:document_organiser/screens/views/pdf_preview.dart';
 import 'package:document_organiser/screens/views/categories.dart';
@@ -11,6 +10,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:pdf_thumbnail/pdf_thumbnail.dart';
 
 import '../../boxes/boxes.dart';
+import '../../settings/account.dart';
 import 'image_preview.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -160,7 +160,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     // Perform action for menu item 1
 
                     // push to the account class
-                    Navigator.push(context,
+                    Navigator.pushReplacement(context,
                         MaterialPageRoute(builder: (context) => Account()));
                   } else if (value == 'menu_item2') {
                     // Perform action for menu item 2

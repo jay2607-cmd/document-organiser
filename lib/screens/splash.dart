@@ -2,6 +2,7 @@
 
 import 'dart:async';
 
+import 'package:document_organiser/screens/views/forget_screen.dart';
 import 'package:document_organiser/screens/views/home_screen.dart';
 import 'package:document_organiser/screens/views/questions.dart';
 import 'package:flutter/material.dart';
@@ -19,7 +20,8 @@ class SplashScreen extends StatefulWidget {
 
 class SplashScreenState extends State<SplashScreen> {
   @override
-  Widget build(BuildContext context) {
+  void initState() {
+    super.initState();
     Timer(
         const Duration(milliseconds: 1500),
         () => DbProvider().getAuthState().then((value) async {
@@ -79,19 +81,23 @@ class SplashScreenState extends State<SplashScreen> {
                     Navigator.pushReplacement(context,
                         MaterialPageRoute(builder: (context) => HomeScreen()));
                   },
+                  canCancel: false,
                   footer: TextButton(
                     onPressed: () {
                       // Release the confirmation state and return to the initial input state.
                       // controller.unsetConfirmed();
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => Questions()));
+                      Navigator.push(context,
+                          MaterialPageRoute(builder: (context) => ForgetPasswordScreen()));
                     },
                     child: const Text('Forgot Password'),
                   ),
-
                 );
               }
             }));
+  }
 
+  @override
+  Widget build(BuildContext context) {
     return const Scaffold(
       body: Center(
         child: Column(

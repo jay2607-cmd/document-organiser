@@ -1,8 +1,10 @@
+import 'package:document_organiser/screens/views/questions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screen_lock/flutter_screen_lock.dart';
 import 'package:hive/hive.dart';
 
 import '../provider/db_provider.dart';
+import '../screens/views/home_screen.dart';
 
 class Account extends StatefulWidget {
   const Account({super.key});
@@ -13,7 +15,6 @@ class Account extends StatefulWidget {
 
 class _AccountState extends State<Account> {
   bool _secured = false;
-
 
   @override
   void initState() {
@@ -38,8 +39,7 @@ class _AccountState extends State<Account> {
             subtitle: Text("Enable two factor authentication"),
             trailing: Switch(
               value: _secured,
-              onChanged:  (bool value) async {
-
+              onChanged: (bool value) async {
                 var box2 = await Hive.openBox("Password");
                 // box2.put("password", "2607");
 
@@ -49,6 +49,7 @@ class _AccountState extends State<Account> {
                 setState(() {
                   if (_secured) {
                     screenLock(
+                      // canCancel: false,
                       context: context,
                       correctString: value2,
                       maxRetries: 3,
@@ -58,13 +59,13 @@ class _AccountState extends State<Account> {
                       onUnlocked: () {
                         setState(() {
                           _secured = false;
-
                         });
                         Navigator.pop(context);
                       },
                       footer: TextButton(
                         onPressed: () {
                           // Release the confirmation state and return to the initial input state.
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => const Questions()));
                         },
                         child: const Text('Forgot Password'),
                       ),
@@ -72,17 +73,18 @@ class _AccountState extends State<Account> {
                   } else {
                     final controller = InputController();
                     screenLockCreate(
+                      // canCancel: false,
                       context: context,
                       inputController: controller,
-                      onConfirmed: (matchedText) async{
-
+                      onConfirmed: (matchedText) async {
                         box2 = await Hive.openBox("Password");
                         box2.put("password", matchedText.toString());
+                        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const Questions()));
 
                         setState(() {
                           _secured = true;
                         });
-                        Navigator.of(context).pop();
+
                       },
                       footer: TextButton(
                         onPressed: () {
@@ -92,7 +94,6 @@ class _AccountState extends State<Account> {
                         child: const Text('Reset input'),
                       ),
                     );
-
                   }
                   // code for reset
                 });
@@ -100,8 +101,6 @@ class _AccountState extends State<Account> {
               },
             ),
           )
-
-
         ],
       ),
     );

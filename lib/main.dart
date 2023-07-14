@@ -13,9 +13,7 @@ import 'screens/views/home_screen.dart';
 
 Future<void> main() async {
 
-
   WidgetsFlutterBinding.ensureInitialized();
-
 
 /*
   var directory = await getApplicationDocumentsDirectory();
@@ -32,7 +30,6 @@ Future<void> main() async {
   Hive.registerAdapter(SaveAdapter());
 
   await Hive.openBox<Save>("saveCategories");
-
 
   // for bookmark
   await Hive.initFlutter();
