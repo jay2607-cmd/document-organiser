@@ -1,7 +1,5 @@
 import 'package:document_organiser/screens/views/home_screen.dart';
-import 'package:document_organiser/screens/views/questions.dart';
 import 'package:document_organiser/utils/constants.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screen_lock/flutter_screen_lock.dart';
 import 'package:hive/hive.dart';
@@ -14,9 +12,6 @@ class ForgetPasswordScreen extends StatefulWidget {
 }
 
 class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
-  List question = QuestionsState.questions;
-  List answers = QuestionsState.answers;
-
   TextEditingController answerController = TextEditingController();
 
   String q = "";
@@ -37,7 +32,7 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
       print("index $index");
 
       q = box3.get("question$index");
-      a = box3.get("answer$index");
+      a = box3.get("answer");
       print(a);
     });
 
@@ -70,7 +65,7 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
                 onPressed: () {
                   print("answerController $answerController");
 
-                  answerController.text.toLowerCase() == a.toLowerCase()
+                  answerController.text.trim().toLowerCase() == a.trim().toLowerCase()
                       ? screenLockCreate(
                           // canCancel: false,
                           context: context,
@@ -81,7 +76,7 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
 
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                backgroundColor: Colors.blue.shade400,
+                                  backgroundColor: Colors.blue.shade400,
                                   content: Text("Password Reset Successfully"),
                                   duration: Duration(seconds: 2)),
                             );

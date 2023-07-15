@@ -1,19 +1,19 @@
+import 'package:document_organiser/screens/views/forget_screen.dart';
 import 'package:document_organiser/screens/views/questions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screen_lock/flutter_screen_lock.dart';
 import 'package:hive/hive.dart';
 
 import '../provider/db_provider.dart';
-import '../screens/views/home_screen.dart';
 
-class Account extends StatefulWidget {
-  const Account({super.key});
+class Security extends StatefulWidget {
+  const Security({super.key});
 
   @override
-  State<Account> createState() => _AccountState();
+  State<Security> createState() => _SecurityState();
 }
 
-class _AccountState extends State<Account> {
+class _SecurityState extends State<Security> {
   bool _secured = false;
 
   @override
@@ -65,7 +65,11 @@ class _AccountState extends State<Account> {
                       footer: TextButton(
                         onPressed: () {
                           // Release the confirmation state and return to the initial input state.
-                          Navigator.push(context, MaterialPageRoute(builder: (context) => const Questions()));
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) =>
+                                      const ForgetPasswordScreen()));
                         },
                         child: const Text('Forgot Password'),
                       ),
@@ -79,12 +83,14 @@ class _AccountState extends State<Account> {
                       onConfirmed: (matchedText) async {
                         box2 = await Hive.openBox("Password");
                         box2.put("password", matchedText.toString());
-                        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const Questions()));
+                        Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const Questions()));
 
                         setState(() {
                           _secured = true;
                         });
-
                       },
                       footer: TextButton(
                         onPressed: () {
@@ -100,7 +106,7 @@ class _AccountState extends State<Account> {
                 DbProvider().saveAuthState(value);
               },
             ),
-          )
+          ),
         ],
       ),
     );

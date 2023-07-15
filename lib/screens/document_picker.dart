@@ -25,6 +25,8 @@ class DocumentPicker extends StatefulWidget {
 }
 
 class DocumentPickerState extends State<DocumentPicker> {
+  TextEditingController answer = TextEditingController();
+
   final String value;
 
   DocumentPickerState({required this.value});
@@ -208,8 +210,14 @@ class DocumentPickerState extends State<DocumentPicker> {
                 ),
                 image != null && isImagePreview
                     ? SingleChildScrollView(
-                        child: Container(
-                            height: 600, width: 400, child: Image.file(image!)),
+                        child: Column(
+                          children: [
+                            Container(
+                                height: 600, width: 400, child: Image.file(image!)),
+                            buildTextField(answer),
+
+                          ],
+                        ),
                       )
                     : Text("No image selected"),
 
@@ -515,4 +523,24 @@ class DocumentPickerState extends State<DocumentPicker> {
       duration: Duration(seconds: 2),
     ));
   }
+
+  TextField buildTextField(TextEditingController answer) {
+    return TextField(
+      decoration: InputDecoration(
+        border: OutlineInputBorder(
+            borderSide: const BorderSide(color: Colors.blue),
+            borderRadius: BorderRadius.circular(10)),
+        hintText: 'Answer',
+        // helperText: 'Keep it meaningful for future purposes',
+        labelText: '${widget.value}',
+        prefixIcon: const Icon(
+          Icons.question_answer,
+          color: Colors.blue,
+        ),
+      ),
+      controller: answer,
+    );
+  }
+
+
 }
