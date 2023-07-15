@@ -14,13 +14,14 @@ class ForgetPasswordScreen extends StatefulWidget {
 }
 
 class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
+  List question = QuestionsState.questions;
+  List answers = QuestionsState.answers;
 
   TextEditingController answerController = TextEditingController();
 
   String q = "";
   String a = "";
   var box2;
-  var box3;
 
   @override
   void initState() {
@@ -29,7 +30,7 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
   }
 
   loadQuestions() async {
-    box3= await Hive.openBox("Question");
+    var box3 = await Hive.openBox("Question");
 
     setState(() {
       int index = box3.get("index");

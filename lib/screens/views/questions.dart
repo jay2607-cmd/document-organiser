@@ -200,20 +200,14 @@ class QuestionsState extends State<Questions> {
 
                       if (answer1.text.isNotEmpty) {
                         box3.put("index", 1);
-                        print(1);
-                      }
-                      if (answer2.text.isNotEmpty) {
-                        print(2);
+                      } else if (answer2.text.isNotEmpty) {
                         box3.put("index", 2);
-                      }
-                      if (answer3.text.isNotEmpty) {
+                      } else if (answer3.text.isNotEmpty) {
                         box3.put("index", 3);
-                      }
-                      if (answer4.text.isNotEmpty) {
+                      } else if (answer4.text.isNotEmpty) {
                         box3.put("index", 4);
                         print(4);
-                      }
-                      if (answer5.text.isNotEmpty) {
+                      } else if (answer5.text.isNotEmpty) {
                         box3.put("index", 5);
                         print(5);
                       } else {
