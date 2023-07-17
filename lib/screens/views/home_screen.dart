@@ -160,7 +160,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     // Perform action for menu item 1
 
                     // push to the account class
-                    Navigator.pushReplacement(context,
+                    Navigator.push(context,
                         MaterialPageRoute(builder: (context) => Security()));
                   } else if (value == 'menu_item2') {
                     // Perform action for menu item 2

@@ -49,8 +49,8 @@ class QuestionsState extends State<Questions> {
     box3.put("question4", questions[3]);
     box3.put("question5", questions[4]);
 
-    setState(() {
-
+    setState(() async{
+      await box3.put("index", 1);
     });
   }
 
