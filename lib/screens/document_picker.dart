@@ -107,7 +107,6 @@ class DocumentPickerState extends State<DocumentPicker> {
       print("no file selected");
       isPDFPreview = false;
     }
-
     // setState(() {
     //   pdfFile = resultFile;
     // });
