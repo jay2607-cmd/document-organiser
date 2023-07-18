@@ -21,3 +21,5 @@ const kButtonTextStyle = TextStyle(fontSize: 17,fontWeight: FontWeight.bold);
 const Color kContainerColor = Color(0XFF1D1E33);
 
 const Color kListCardBackGroundColor = Color(0xFFF6F7F8);
+
+const kQuestionStyle = TextStyle(fontWeight: FontWeight.bold, fontSize: 15);

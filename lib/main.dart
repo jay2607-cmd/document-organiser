@@ -1,8 +1,45 @@
+import 'package:document_organiser/database/save.dart';
+import 'package:document_organiser/screens/authentication.dart';
+import 'package:document_organiser/screens/splash.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:hive/hive.dart';
+import 'package:hive_flutter/adapters.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-import 'home_screen.dart';
+import 'database/password.dart';
+import 'screens/views/home_screen.dart';
 
-void main() {
+Future<void> main() async {
+
+  WidgetsFlutterBinding.ensureInitialized();
+
+/*
+  var directory = await getApplicationDocumentsDirectory();
+  Hive.init(directory.path);
+
+  Hive.registerAdapter(SaveAdapter());
+
+  await Hive.openBox<Save>("save");
+*/
+
+  var directory = await getApplicationDocumentsDirectory();
+  Hive.init(directory.path);
+
+  Hive.registerAdapter(SaveAdapter());
+
+  await Hive.openBox<Save>("saveCategories");
+
+  // for bookmark
+  await Hive.initFlutter();
+  await Hive.openBox("favorites");
+
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitDown,
+    DeviceOrientation.portraitUp,
+  ]);
+
   runApp(const MyApp());
 }
 
@@ -15,8 +52,7 @@ class MyApp extends StatelessWidget {
     return const MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Document Organiser',
-      home: HomeScreen(),
+      home: SplashScreen(),
     );
   }
 }
-
