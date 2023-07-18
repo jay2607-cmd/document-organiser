@@ -3,13 +3,9 @@ import 'package:document_organiser/screens/authentication.dart';
 import 'package:document_organiser/screens/splash.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:hive/hive.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-import 'database/password.dart';
-import 'screens/views/home_screen.dart';
 
 Future<void> main() async {
 
@@ -45,7 +41,6 @@ Future<void> main() async {
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
-
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
