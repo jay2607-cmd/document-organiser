@@ -8,9 +8,11 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf_thumbnail/pdf_thumbnail.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../boxes/boxes.dart';
 import '../../settings/security.dart';
+import '../../settings/settings_screen.dart';
 import 'image_preview.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -26,7 +28,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   int base = -1;
   int check = -2;
 
-  var identifier = new Map();
+  var identifier = {};
 
   List<String> labels = ['Images', 'PDFs'];
 
@@ -37,11 +39,21 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     setState(() {
       loadImages();
       loadPDF();
+      viewStatus();
     });
     print("initState");
     WidgetsBinding.instance.addObserver(this);
 
     super.initState();
+  }
+
+  SharedPreferences? isGridView;
+  viewStatus() async {
+    isGridView = await SharedPreferences.getInstance();
+    if (isGridView?.getBool("isGrid") == null) {
+      await isGridView!.setBool('isGrid', false);
+    }
+    print(isGridView!.getBool('isGrid'));
   }
 
   Future<void> loadImages() async {
@@ -152,6 +164,18 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                             builder: (context) => DocumentPicker("Invoice")));
                   },
                   icon: const Icon(Icons.add)),
+              IconButton(
+                  onPressed: () async {
+                    if (isGridView!.getBool('isGrid') == true) {
+                      await isGridView!.setBool('isGrid', false);
+                    } else {
+                      await isGridView!.setBool('isGrid', true);
+                    }
+                    setState(() {});
+                  },
+                  icon: isGridView!.getBool('isGrid') == true
+                      ? Icon(Icons.list)
+                      : Icon(Icons.grid_view_sharp)),
               PopupMenuButton<String>(
                 icon: Icon(Icons.more_vert),
                 onSelected: (value) {
@@ -162,8 +186,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     // push to the account class
                     Navigator.push(context,
                         MaterialPageRoute(builder: (context) => Security()));
-                  } else if (value == 'menu_item2') {
-                    // Perform action for menu item 2
+                  } else if (value == 'settings') {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => SettingScreen()));
                   }
                 },
                 itemBuilder: (context) => [
@@ -172,8 +199,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     child: Text('Security'),
                   ),
                   PopupMenuItem(
-                    value: 'menu_item2',
-                    child: Text('Menu Item 2'),
+                    value: 'settings',
+                    child: Text('Settings'),
                   ),
                 ],
               )
@@ -314,173 +341,73 @@ height: 260,
         : ValueListenableBuilder(
             valueListenable: Hive.box("favorites").listenable(),
             builder: (BuildContext context, Box<dynamic> box, Widget? child) {
-              return ListView.builder(
-                /*gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  childAspectRatio: 1.5 / 3,
-                  crossAxisSpacing: 20.0,
-                  mainAxisSpacing: 30.0,
-                ),*/
-                itemCount: pdfFiles.length,
-                itemBuilder: (BuildContext context, int index) {
-                  final isFavorites = box.get(index) != null;
-                  file = pdfFiles[index];
-                  return GestureDetector(
-                    onTap: () {
-                      print("${index}");
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => PdfPreview.forDelete(
-                            PdfPath: pdfFiles[index].path,
-                            index: index,
-                            PdfList: pdfFiles,
-                          ),
-                        ),
-                      );
-                    },
-                    child: Card(
-                      child: Stack(
-                        children: [
-                          Container(
-                              height: 120,
-                              width: 80,
-                              child: PdfThumbnail.fromFile(
-                                file.path,
-                                currentPage: 1,
-                                height: 120,
-                                currentPageDecoration: BoxDecoration(
-                                    border:
-                                        Border.all(color: Colors.transparent)),
-                                backgroundColor: Colors.transparent,
-                                onPageClicked: (page) {
-                                  Navigator.pushReplacement(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          PdfPreview.forDelete(
-                                        PdfPath: pdfFiles[index].path,
-                                        index: index,
-                                        PdfList: pdfFiles,
-                                      ),
-                                    ),
-                                  );
-                                },
-                              )
-                              // SfPdfViewer.file(
-                              //   File(file.path),
-                              // ),
-                              ),
-                          Padding(
-                            padding: const EdgeInsets.only(top: 35.0),
-                            child: Align(
-                                alignment: Alignment.topCenter,
-                                child: Text(file.path.substring(70))),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(top: 25.0),
-                            child: Align(
-                              alignment: Alignment.topRight,
-                              child: IconButton(
-                                  onPressed: () async {
-                                    if (isFavorites) {
-                                      await box.delete(index);
-                                    } else {
-                                      await box.put(index, file.path);
-                                      const snackBar = SnackBar(
-                                        content: Text(
-                                          "Added successfully",
-                                        ),
-                                        duration: Duration(seconds: 1),
-                                      );
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(snackBar);
-                                    }
-                                  },
-                                  icon: isFavorites
-                                      ? Icon(
-                                          Icons.bookmark,
-                                          color: Colors.red,
-                                        )
-                                      : Icon(
-                                          Icons.bookmark_border,
-                                          color: Colors.red,
-                                        )),
-                            ),
-                          )
-                        ],
+              return isGridView!.getBool('isGrid') == true
+                  ? GridView.builder(
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        childAspectRatio: 1.5 / 3,
+                        // crossAxisSpacing: 20.0,
+                        // mainAxisSpacing: 30.0,
                       ),
-                    ),
-                  );
-                },
-              );
-            });
-  }
-
-  allImages() {
-    return imageFiles.isEmpty
-        ? Center(child: Text("No Images Chosen"))
-        : ValueListenableBuilder(
-            valueListenable: Hive.box("favorites").listenable(),
-            builder: (BuildContext context, Box<dynamic> box, Widget? child) {
-              return ListView.builder(
-                /*gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 1,
-            childAspectRatio: 1.5 / 3,
-            // crossAxisSpacing: 20.0,
-            // mainAxisSpacing: 30.0,
-          ),*/
-                itemCount: imageFiles.length,
-                itemBuilder: (BuildContext context, index) {
-                  final isFavorites = box.get(index) != null;
-                  file = imageFiles[index];
-
-                  return GestureDetector(
-                    onTap: () {
-                      print("${index}");
-                      Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => ImagePreview(
-                                    filePath: imageFiles[index].path,
-                                    file: imageFiles[index],
-                                    imageFiles: imageFiles,
-                                    index: index,
-                                  )));
-                    },
-                    child: Container(
-                      color: Colors.grey.shade200,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 4.0, vertical: 1),
-                        child: Card(
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
+                      itemCount: pdfFiles.length,
+                      itemBuilder: (BuildContext context, int index) {
+                        final isFavorites = box.get(index) != null;
+                        file = pdfFiles[index];
+                        return GestureDetector(
+                          onTap: () {
+                            print("${index}");
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => PdfPreview.forDelete(
+                                  PdfPath: pdfFiles[index].path,
+                                  index: index,
+                                  PdfList: pdfFiles,
+                                ),
+                              ),
+                            );
+                          },
+                          child: Card(
                             child: Stack(
-                              // crossAxisAlignment: CrossAxisAlignment.center,
-                              // mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Align(
-                                  alignment: Alignment.centerLeft,
+                                  alignment: Alignment.center,
                                   child: Container(
-                                      height: 70,
-                                      width: 80,
-                                      child: Image.file(file)),
+                                      height: 300,
+                                      width: 200,
+                                      child: PdfThumbnail.fromFile(
+                                        file.path,
+                                        currentPage: 1,
+                                        height: 300,
+                                        currentPageDecoration: BoxDecoration(
+                                            border: Border.all(
+                                                color: Colors.transparent)),
+                                        backgroundColor: Colors.transparent,
+                                        onPageClicked: (page) {
+                                          Navigator.pushReplacement(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  PdfPreview.forDelete(
+                                                PdfPath: pdfFiles[index].path,
+                                                index: index,
+                                                PdfList: pdfFiles,
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                      )
+                                      // SfPdfViewer.file(
+                                      //   File(file.path),
+                                      // ),
+                                      ),
                                 ),
-                                // Text(file.path),
                                 Padding(
-                                  padding:
-                                      const EdgeInsets.only(top: 12.0, left: 6),
+                                  padding: const EdgeInsets.symmetric(vertical: 20.0),
                                   child: Align(
-                                    alignment: Alignment.center,
-                                    child: SingleChildScrollView(
-                                        scrollDirection: Axis.horizontal,
-                                        child: Text(
-                                          file.path.substring(70),
-                                        )),
-                                  ),
+                                      alignment: Alignment.bottomCenter,
+                                      child: Text(file.path.substring(70))),
                                 ),
-
                                 Align(
                                   alignment: Alignment.topRight,
                                   child: IconButton(
@@ -509,26 +436,336 @@ height: 260,
                                               color: Colors.red,
                                             )),
                                 )
-
-                                // child: Image.file(file),
-                                // Container(
-                                //   height: 260,
-                                //   width: 250,
-                                //   child: SfPdfViewer.file(
-                                //     File(file.path),
-                                //   ),
-                                // ),
-
-                                // Text(file.path),
                               ],
                             ),
                           ),
-                        ),
+                        );
+                      },
+                    )
+                  : ListView.builder(
+                      /*gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  childAspectRatio: 1.5 / 3,
+                  crossAxisSpacing: 20.0,
+                  mainAxisSpacing: 30.0,
+                ),*/
+                      itemCount: pdfFiles.length,
+                      itemBuilder: (BuildContext context, int index) {
+                        final isFavorites = box.get(index) != null;
+                        file = pdfFiles[index];
+                        return GestureDetector(
+                          onTap: () {
+                            print("${index}");
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => PdfPreview.forDelete(
+                                  PdfPath: pdfFiles[index].path,
+                                  index: index,
+                                  PdfList: pdfFiles,
+                                ),
+                              ),
+                            );
+                          },
+                          child: Card(
+                            child: Stack(
+                              children: [
+                                Container(
+                                    height: 120,
+                                    width: 80,
+                                    child: PdfThumbnail.fromFile(
+                                      file.path,
+                                      currentPage: 1,
+                                      height: 120,
+                                      currentPageDecoration: BoxDecoration(
+                                          border: Border.all(
+                                              color: Colors.transparent)),
+                                      backgroundColor: Colors.transparent,
+                                      onPageClicked: (page) {
+                                        Navigator.pushReplacement(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                PdfPreview.forDelete(
+                                              PdfPath: pdfFiles[index].path,
+                                              index: index,
+                                              PdfList: pdfFiles,
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    )
+                                    // SfPdfViewer.file(
+                                    //   File(file.path),
+                                    // ),
+                                    ),
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 35.0),
+                                  child: Align(
+                                      alignment: Alignment.topCenter,
+                                      child: Text(file.path.substring(70))),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 25.0),
+                                  child: Align(
+                                    alignment: Alignment.topRight,
+                                    child: IconButton(
+                                        onPressed: () async {
+                                          if (isFavorites) {
+                                            await box.delete(index);
+                                          } else {
+                                            await box.put(index, file.path);
+                                            const snackBar = SnackBar(
+                                              content: Text(
+                                                "Added successfully",
+                                              ),
+                                              duration: Duration(seconds: 1),
+                                            );
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(snackBar);
+                                          }
+                                        },
+                                        icon: isFavorites
+                                            ? Icon(
+                                                Icons.bookmark,
+                                                color: Colors.red,
+                                              )
+                                            : Icon(
+                                                Icons.bookmark_border,
+                                                color: Colors.red,
+                                              )),
+                                  ),
+                                )
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    );
+            });
+  }
+
+  allImages() {
+    return imageFiles.isEmpty
+        ? Center(child: Text("No Images Chosen"))
+        : ValueListenableBuilder(
+            valueListenable: Hive.box("favorites").listenable(),
+            builder: (BuildContext context, Box<dynamic> box, Widget? child) {
+              return isGridView!.getBool('isGrid') == true
+                  ? GridView.builder(
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        childAspectRatio: 1.5 / 3,
+                        // crossAxisSpacing: 20.0,
+                        // mainAxisSpacing: 10.0,
                       ),
-                    ),
-                  );
-                },
-              );
+                      itemCount: imageFiles.length,
+                      itemBuilder: (BuildContext context, index) {
+                        final isFavorites = box.get(index) != null;
+                        file = imageFiles[index];
+
+                        return GestureDetector(
+                          onTap: () {
+                            print("${index}");
+                            Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => ImagePreview(
+                                          filePath: imageFiles[index].path,
+                                          file: imageFiles[index],
+                                          imageFiles: imageFiles,
+                                          index: index,
+                                        )));
+                          },
+                          child: Container(
+                            color: Colors.grey.shade200,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 4.0, vertical: 1),
+                              child: Card(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Stack(
+                                    // crossAxisAlignment: CrossAxisAlignment.center,
+                                    // mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Align(
+                                        alignment: Alignment.centerLeft,
+                                        child: Container(
+                                            height: 200,
+                                            width: 150,
+                                            child: Image.file(file)),
+                                      ),
+                                      // Text(file.path),
+                                      Padding(
+                                        padding: const EdgeInsets.only(
+                                            top: 12.0, left: 6),
+                                        child: Align(
+                                          alignment: Alignment.bottomCenter,
+                                          child: SingleChildScrollView(
+                                              scrollDirection: Axis.horizontal,
+                                              child: Text(
+                                                file.path.substring(70),
+                                              )),
+                                        ),
+                                      ),
+
+                                      Align(
+                                        alignment: Alignment.topRight,
+                                        child: IconButton(
+                                            onPressed: () async {
+                                              if (isFavorites) {
+                                                await box.delete(index);
+                                              } else {
+                                                await box.put(index, file.path);
+                                                const snackBar = SnackBar(
+                                                  content: Text(
+                                                    "Added successfully",
+                                                  ),
+                                                  duration:
+                                                      Duration(seconds: 1),
+                                                );
+                                                ScaffoldMessenger.of(context)
+                                                    .showSnackBar(snackBar);
+                                              }
+                                            },
+                                            icon: isFavorites
+                                                ? Icon(
+                                                    Icons.bookmark,
+                                                    color: Colors.red,
+                                                  )
+                                                : Icon(
+                                                    Icons.bookmark_border,
+                                                    color: Colors.red,
+                                                  )),
+                                      )
+
+                                      // child: Image.file(file),
+                                      // Container(
+                                      //   height: 260,
+                                      //   width: 250,
+                                      //   child: SfPdfViewer.file(
+                                      //     File(file.path),
+                                      //   ),
+                                      // ),
+
+                                      // Text(file.path),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    )
+                  : ListView.builder(
+                      /*gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 1,
+            childAspectRatio: 1.5 / 3,
+            // crossAxisSpacing: 20.0,
+            // mainAxisSpacing: 30.0,
+          ),*/
+                      itemCount: imageFiles.length,
+                      itemBuilder: (BuildContext context, index) {
+                        final isFavorites = box.get(index) != null;
+                        file = imageFiles[index];
+
+                        return GestureDetector(
+                          onTap: () {
+                            print("${index}");
+                            Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => ImagePreview(
+                                          filePath: imageFiles[index].path,
+                                          file: imageFiles[index],
+                                          imageFiles: imageFiles,
+                                          index: index,
+                                        )));
+                          },
+                          child: Container(
+                            color: Colors.grey.shade200,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 4.0, vertical: 1),
+                              child: Card(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Stack(
+                                    // crossAxisAlignment: CrossAxisAlignment.center,
+                                    // mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Align(
+                                        alignment: Alignment.centerLeft,
+                                        child: Container(
+                                            height: 70,
+                                            width: 80,
+                                            child: Image.file(file)),
+                                      ),
+                                      // Text(file.path),
+                                      Padding(
+                                        padding: const EdgeInsets.only(
+                                            top: 12.0, left: 6),
+                                        child: Align(
+                                          alignment: Alignment.center,
+                                          child: SingleChildScrollView(
+                                              scrollDirection: Axis.horizontal,
+                                              child: Text(
+                                                file.path.substring(70),
+                                              )),
+                                        ),
+                                      ),
+
+                                      Align(
+                                        alignment: Alignment.topRight,
+                                        child: IconButton(
+                                            onPressed: () async {
+                                              if (isFavorites) {
+                                                await box.delete(index);
+                                              } else {
+                                                await box.put(index, file.path);
+                                                const snackBar = SnackBar(
+                                                  content: Text(
+                                                    "Added successfully",
+                                                  ),
+                                                  duration:
+                                                      Duration(seconds: 1),
+                                                );
+                                                ScaffoldMessenger.of(context)
+                                                    .showSnackBar(snackBar);
+                                              }
+                                            },
+                                            icon: isFavorites
+                                                ? Icon(
+                                                    Icons.bookmark,
+                                                    color: Colors.red,
+                                                  )
+                                                : Icon(
+                                                    Icons.bookmark_border,
+                                                    color: Colors.red,
+                                                  )),
+                                      )
+
+                                      // child: Image.file(file),
+                                      // Container(
+                                      //   height: 260,
+                                      //   width: 250,
+                                      //   child: SfPdfViewer.file(
+                                      //     File(file.path),
+                                      //   ),
+                                      // ),
+
+                                      // Text(file.path),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    );
             });
   }
 

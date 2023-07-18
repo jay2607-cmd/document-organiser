@@ -16,7 +16,7 @@ class Categories extends StatefulWidget {
 
   int totalLength = 0;
   Map? identifier;
-  Categories.withLength(int this.totalLength,Map this.identifier);
+  Categories.withLength(int this.totalLength, Map this.identifier);
 
   @override
   State<Categories> createState() => CategoriesState();
@@ -26,11 +26,13 @@ class CategoriesState extends State<Categories> {
   TextEditingController categoryController = TextEditingController();
   var data;
   List<int> dataLegnth = [];
+  var outerCountBox;
 
   @override
   void initState() {
     isLogin();
     super.initState();
+    loadCountFromDatabase();
   }
 
   Future<void> isLogin() async {
@@ -152,6 +154,56 @@ class CategoriesState extends State<Categories> {
     }
   }
 
+  var categoryList = [
+    "Invoice",
+    "Personal",
+    "Bank",
+    "Medical",
+    "Business",
+    "Ticket",
+    "Water",
+    "Electricity",
+    "Gas",
+    "Book",
+    "Book",
+    "School",
+    "Product",
+    "Contract"
+  ];
+
+  var categoryMap = new Map();
+  /*var categoryMap =  {
+  outerCountBox = await Hive.openBox("OuterCount");
+
+  "Invoice" : outerCountBox.get(categoryList[1]),
+    "Personal" : ,
+  };*/
+  int count = 0;
+  loadCountFromDatabase() async {
+    // open the database for count
+    outerCountBox = await Hive.openBox("OuterCount");
+
+/*    categoryMap[categoryList[0]] = outerCountBox.get(categoryList[0]);
+    categoryMap[categoryList[1]] = outerCountBox.get(categoryList[1]);
+    categoryMap[categoryList[2]] = outerCountBox.get(categoryList[2]);
+    categoryMap[categoryList[3]] = outerCountBox.get(categoryList[3]);
+    categoryMap[categoryList[4]] = outerCountBox.get(categoryList[4]);
+    categoryMap[categoryList[5]] = outerCountBox.get(categoryList[5]);
+    categoryMap[categoryList[6]] = outerCountBox.get(categoryList[6]);
+    categoryMap[categoryList[7]] = outerCountBox.get(categoryList[7]);
+    categoryMap[categoryList[8]] = outerCountBox.get(categoryList[8]);
+    categoryMap[categoryList[9]] = outerCountBox.get(categoryList[9]);
+    categoryMap[categoryList[10]] = outerCountBox.get(categoryList[10]);
+    categoryMap[categoryList[11]] = outerCountBox.get(categoryList[11]);
+    categoryMap[categoryList[12]] = outerCountBox.get(categoryList[12]);*/
+
+    print(categoryList[6]);
+    count = await outerCountBox.get("Ticket");
+    print(
+        "count >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ${count}");
+    setState(() {});
+  }
+
   InheritanceTrial inheritanceTrial = InheritanceTrial();
 
   @override
@@ -233,11 +285,11 @@ class CategoriesState extends State<Categories> {
                           alignment: Alignment.topRight,
                           child: Padding(
                             padding: const EdgeInsets.all(8.0),
-
                             child: Text(
-                                widget.identifier!.containsKey(data[index].name)?""
+                                /*widget.identifier!.containsKey(data[index].name)?""
                                     "(${widget.identifier?[data[index]]})"
-                                    :"(0)",
+                                    :"(0)",*/
+                                count != 0 ? "($count)" : "",
                                 style: TextStyle(fontWeight: FontWeight.bold)),
                           ),
                         )
@@ -330,8 +382,7 @@ class CategoriesState extends State<Categories> {
   }
 }
 
-
-class InheritanceTrial extends CategoryInsiderState{
+class InheritanceTrial extends CategoryInsiderState {
   CategoryInsiderState categoryInsiderState = CategoryInsiderState();
   int categoryLength() {
     print("categoryLength ${imageFiles.length}");

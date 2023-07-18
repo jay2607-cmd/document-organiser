@@ -225,8 +225,7 @@ class _ImagePreviewState extends State<ImagePreview> {
                                             "editingController.text ${editingController.text}");
 
                                         // update new data into database
-                                        await notesBox.put(widget.filePath,
-                                            editingController.text);
+                                        await notesBox.put(widget.filePath, editingController.text);
 
                                         // retrieve that saved data
                                         data =
