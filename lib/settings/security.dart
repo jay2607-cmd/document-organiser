@@ -59,6 +59,7 @@ class _SecurityState extends State<Security> {
                       onUnlocked: () {
                         setState(() {
                           _secured = false;
+                          DbProvider().saveAuthState(_secured);
                         });
                         Navigator.pop(context);
                       },
@@ -88,9 +89,6 @@ class _SecurityState extends State<Security> {
                             MaterialPageRoute(
                                 builder: (context) => const Questions()));
 
-                        setState(() {
-                          _secured = true;
-                        });
                       },
                       footer: TextButton(
                         onPressed: () {
@@ -103,7 +101,6 @@ class _SecurityState extends State<Security> {
                   }
                   // code for reset
                 });
-                DbProvider().saveAuthState(value);
               },
             ),
           ),

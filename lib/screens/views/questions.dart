@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 
+import '../../provider/db_provider.dart';
 import '../../utils/constants.dart';
 import 'home_screen.dart';
 
@@ -54,6 +55,7 @@ class QuestionsState extends State<Questions> {
     });
   }
 
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -100,6 +102,7 @@ class QuestionsState extends State<Questions> {
                     String answerText = answer.text;
 
                     if (answerText.trim().isNotEmpty) {
+                      DbProvider().saveAuthState(true);
                       Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(

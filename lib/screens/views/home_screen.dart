@@ -28,6 +28,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   int base = -1;
   int check = -2;
 
+  bool isImageAdded = false;
+  bool isPdfAdded = false;
+
   var identifier = {};
 
   List<String> labels = ['Images', 'PDFs'];
@@ -43,7 +46,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     });
     print("initState");
     WidgetsBinding.instance.addObserver(this);
-
     super.initState();
   }
 
@@ -78,6 +80,28 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       check = 0;
       imageFiles = pngFiles!;
     });
+
+  }
+
+  void sortFilesByLastModified(List<File> files, String document) {
+    files.sort((a, b) {
+      var aModified = a.lastModifiedSync();
+      var bModified = b.lastModifiedSync();
+      return bModified.compareTo(aModified);
+    });
+
+    // print("oldImagefileLength ${imageLength}");
+    print("NewImagefileLength ${imageFiles.length}");
+
+    if(document == "images" ) {
+      // shift index
+    print("shift index");
+    }
+
+    if(document == "pdfs") {
+
+    }
+
   }
 
   Future<void> loadPDF() async {
@@ -106,6 +130,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
+    sortFilesByLastModified(imageFiles,"images");
+    sortFilesByLastModified(pdfFiles,"pdfs");
     var box = Boxes.getData();
     // print("identifier size-->> ${identifier.length}");
     return WillPopScope(
@@ -416,7 +442,8 @@ height: 260,
                                           await box.delete(index);
                                         } else {
                                           await box.put(index, file.path);
-                                          const snackBar = SnackBar(
+                                           var snackBar = SnackBar(
+                                            backgroundColor: Colors.blue.shade200,
                                             content: Text(
                                               "Added successfully",
                                             ),

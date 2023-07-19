@@ -1,5 +1,4 @@
 import 'package:document_organiser/database/save.dart';
-import 'package:document_organiser/screens/authentication.dart';
 import 'package:document_organiser/screens/splash.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';

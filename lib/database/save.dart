@@ -7,7 +7,7 @@ class Save extends HiveObject{
   late String name;
 
   @HiveField(1)
-  late String image;
+   String image = "0";
 
   Save({required this.name, required this.image});
 }

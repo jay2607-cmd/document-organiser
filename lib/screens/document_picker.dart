@@ -201,6 +201,7 @@ class DocumentPickerState extends State<DocumentPicker> {
                   }
                   if (isImagePreview || isPDFPreview) {
                     _willPopCallback();
+
                   } else {
                     showInSnackBar("Please select a file to save");
                   }
@@ -380,6 +381,7 @@ class DocumentPickerState extends State<DocumentPicker> {
   Future<bool> _willPopCallback() {
     Navigator.pushReplacement(
         context, MaterialPageRoute(builder: (builder) => HomeScreen()));
+
     return Future.value(true);
   }
 

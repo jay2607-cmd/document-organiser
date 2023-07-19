@@ -22,6 +22,23 @@ class Categories extends StatefulWidget {
   State<Categories> createState() => CategoriesState();
 }
 
+var categoryList = [
+  "Invoice",
+  "Personal",
+  "Bank",
+  "Medical",
+  "Business",
+  "Ticket",
+  "Water",
+  "Electricity",
+  "Gas",
+  "Book",
+  "Book",
+  "School",
+  "Product",
+  "Contract"
+];
+
 class CategoriesState extends State<Categories> {
   TextEditingController categoryController = TextEditingController();
   var data;
@@ -38,55 +55,57 @@ class CategoriesState extends State<Categories> {
   Future<void> isLogin() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     if (prefs.getBool("isFirst") == null) {
-      var data = Save(name: "Invoice", image: "");
+      var data = Save(name: "Invoice", image: outerCountBox.get("Invoice").toString());
       var box = Boxes.getData();
       box.add(data);
 
-      data = Save(name: "Personal", image: "");
+      print("outerCountBox.get(Invoice).toString() ${outerCountBox.get("Invoice").toString()}");
+
+      data = Save(name: "Personal", image: outerCountBox.get("Personal").toString());
       box = Boxes.getData();
       box.add(data);
 
-      data = Save(name: "Bank", image: "");
+      data = Save(name: "Bank", image: outerCountBox.get("Bank").toString());
       box = Boxes.getData();
       box.add(data);
 
-      data = Save(name: "Medical", image: "");
+      data = Save(name: "Medical", image: outerCountBox.get("Medical").toString());
       box = Boxes.getData();
       box.add(data);
 
-      data = Save(name: "Business", image: "");
+      data = Save(name: "Business", image: outerCountBox.get("Business").toString());
       box = Boxes.getData();
       box.add(data);
 
-      data = Save(name: "Ticket", image: "");
+      data = Save(name: "Ticket", image: outerCountBox.get("Ticket").toString());
       box = Boxes.getData();
       box.add(data);
 
-      data = Save(name: "Water", image: "");
+      data = Save(name: "Water", image: outerCountBox.get("Water").toString());
       box = Boxes.getData();
       box.add(data);
 
-      data = Save(name: "Electricity", image: "");
+      data = Save(name: "Electricity", image: outerCountBox.get("Electricity").toString());
       box = Boxes.getData();
       box.add(data);
 
-      data = Save(name: "Gas", image: "");
+      data = Save(name: "Gas", image: outerCountBox.get("Gas").toString());
       box = Boxes.getData();
       box.add(data);
 
-      data = Save(name: "Book", image: "");
+      data = Save(name: "Book", image: outerCountBox.get("Book").toString());
       box = Boxes.getData();
       box.add(data);
 
-      data = Save(name: "School", image: "");
+      data = Save(name: "School", image: outerCountBox.get("School").toString());
       box = Boxes.getData();
       box.add(data);
 
-      data = Save(name: "Product", image: "");
+      data = Save(name: "Product", image: outerCountBox.get("Product").toString());
       box = Boxes.getData();
       box.add(data);
 
-      data = Save(name: "Contract", image: "");
+      data = Save(name: "Contract", image: outerCountBox.get("Contract").toString());
       box = Boxes.getData();
       box.add(data);
 
@@ -95,56 +114,58 @@ class CategoriesState extends State<Categories> {
       prefs.setBool("isFirst", true);
     } else {
       if (prefs.getBool("isFirst")! == false) {
-        var data = Save(name: "Invoice", image: "");
+        var data = Save(name: "Invoice", image: outerCountBox.get("Invoice").toString());
         var box = Boxes.getData();
         box.add(data);
 
-        data = Save(name: "Personal", image: "");
+        print("outerCountBox.get(Invoice).toString() ${outerCountBox.get("Invoice").toString()}");
+
+        data = Save(name: "Personal", image: outerCountBox.get("Personal").toString());
         box = Boxes.getData();
         box.add(data);
 
-        data = Save(name: "Bank", image: "");
+        data = Save(name: "Bank", image: outerCountBox.get("Bank").toString());
         box = Boxes.getData();
         box.add(data);
 
-        data = Save(name: "Medical", image: "");
+        data = Save(name: "Medical", image: outerCountBox.get("Medical").toString());
         box = Boxes.getData();
         box.add(data);
 
-        data = Save(name: "Business", image: "");
+        data = Save(name: "Business", image: outerCountBox.get("Business").toString());
         box = Boxes.getData();
 
         box.add(data);
 
-        data = Save(name: "Ticket", image: "");
+        data = Save(name: "Ticket", image: outerCountBox.get("Ticket").toString());
         box = Boxes.getData();
         box.add(data);
 
-        data = Save(name: "Water", image: "");
+        data = Save(name: "Water",image: outerCountBox.get("Water").toString());
         box = Boxes.getData();
         box.add(data);
 
-        data = Save(name: "Electricity", image: "");
+        data = Save(name: "Electricity", image: outerCountBox.get("Electricity").toString());
         box = Boxes.getData();
         box.add(data);
 
-        data = Save(name: "Gas", image: "");
+        data = Save(name: "Gas", image: outerCountBox.get("Gas").toString());
         box = Boxes.getData();
         box.add(data);
 
-        data = Save(name: "Book", image: "");
+        data = Save(name: "Book", image: outerCountBox.get("Book").toString());
         box = Boxes.getData();
         box.add(data);
 
-        data = Save(name: "School", image: "");
+        data = Save(name: "School", image: outerCountBox.get("School").toString());
         box = Boxes.getData();
         box.add(data);
 
-        data = Save(name: "Product", image: "");
+        data = Save(name: "Product", image: outerCountBox.get("Product").toString());
         box = Boxes.getData();
         box.add(data);
 
-        data = Save(name: "Contract", image: "");
+        data = Save(name: "Contract", image: outerCountBox.get("Contract").toString());
         box = Boxes.getData();
         box.add(data);
         print("hey ${box.get("name")}");
@@ -154,22 +175,7 @@ class CategoriesState extends State<Categories> {
     }
   }
 
-  var categoryList = [
-    "Invoice",
-    "Personal",
-    "Bank",
-    "Medical",
-    "Business",
-    "Ticket",
-    "Water",
-    "Electricity",
-    "Gas",
-    "Book",
-    "Book",
-    "School",
-    "Product",
-    "Contract"
-  ];
+
 
   var categoryMap = new Map();
   /*var categoryMap =  {
@@ -182,6 +188,10 @@ class CategoriesState extends State<Categories> {
   loadCountFromDatabase() async {
     // open the database for count
     outerCountBox = await Hive.openBox("OuterCount");
+
+    SharedPreferences imageLengthPref = await SharedPreferences.getInstance();
+    print(
+        "Added value in database : ${"Personal"} ::::: ${imageLengthPref.getInt(categoryList[0])}");
 
 /*    categoryMap[categoryList[0]] = outerCountBox.get(categoryList[0]);
     categoryMap[categoryList[1]] = outerCountBox.get(categoryList[1]);
@@ -197,10 +207,13 @@ class CategoriesState extends State<Categories> {
     categoryMap[categoryList[11]] = outerCountBox.get(categoryList[11]);
     categoryMap[categoryList[12]] = outerCountBox.get(categoryList[12]);*/
 
-    print(categoryList[6]);
-    count = await outerCountBox.get("Ticket");
+    print(categoryList[2]);
+    count = await outerCountBox.get("Invoice");
     print(
         "count >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ${count}");
+
+    print("outerCountBox.get(Invoice).toString() ${outerCountBox.get("Invoice").toString()}");
+
     setState(() {});
   }
 
@@ -268,7 +281,11 @@ class CategoriesState extends State<Categories> {
                                         child: Text('OK'),
                                         onPressed: () {
                                           delete(data[index]);
+                                          categoryList.remove(categoryList.last);
+
                                           Navigator.pop(context);
+                                          print("categoryList.last ${categoryList.length}");
+
                                         },
                                       ),
                                     ],
@@ -289,7 +306,11 @@ class CategoriesState extends State<Categories> {
                                 /*widget.identifier!.containsKey(data[index].name)?""
                                     "(${widget.identifier?[data[index]]})"
                                     :"(0)",*/
-                                count != 0 ? "($count)" : "",
+                                // count != 0 ? "($count)" : "",
+                              // outerCountBox.contains(data[index].name) ? outerCountBox.get(data[index].name).toString() : "0",
+
+                                outerCountBox.get(data[index].name) == null ? "0":
+                                "${outerCountBox.get(data[index].name).toString()} ",
                                 style: TextStyle(fontWeight: FontWeight.bold)),
                           ),
                         )
@@ -350,6 +371,8 @@ class CategoriesState extends State<Categories> {
                         showInSnackBar("Category Cannot be Empty");
                       } else {
                         box.add(data);
+                        categoryList.add(data.name);
+                        print("categoryList.last ${categoryList.last}");
                       }
 
                       setState(() {});
