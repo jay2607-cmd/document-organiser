@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../provider/db_provider.dart';
+
 class SettingScreen extends StatefulWidget {
   const SettingScreen({super.key});
 
@@ -8,8 +10,60 @@ class SettingScreen extends StatefulWidget {
 }
 
 class _SettingScreenState extends State<SettingScreen> {
+  bool isNotesSharingEnabled = false;
+  bool isHideCreationDate = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    DbProvider().getSharingNotesState().then((value) {
+      setState(() {
+        isNotesSharingEnabled = value;
+      });
+    });
+
+    DbProvider().getHideCreationDateStatus().then((value) {
+      setState(() {
+        isHideCreationDate = value;
+      });
+    });
+
+  }
+
   @override
   Widget build(BuildContext context) {
-    return const Placeholder();
+    return Scaffold(
+        appBar: AppBar(
+          title: Text("Settings"),
+        ),
+        body: Column(
+          children: [
+            ListTile(
+              title: Text("Share Document Details too"),
+              trailing: Switch(
+                  value: isNotesSharingEnabled,
+                  onChanged: (bool value) async {
+                    setState(() {
+                      isNotesSharingEnabled = value;
+                    });
+
+                    DbProvider().saveSharingNotesState(value);
+                  }),
+            ),
+
+            ListTile(
+              title: Text("Hide Creation date of Documents"),
+              trailing: Switch(
+                  value: isHideCreationDate,
+                  onChanged: (bool value) async {
+                    setState(() {
+                      isHideCreationDate = value;
+                    });
+                    DbProvider().saveHideCreationDateStatus(value);
+                  }),
+            ),
+          ],
+        ));
   }
 }

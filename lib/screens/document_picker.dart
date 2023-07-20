@@ -2,17 +2,18 @@ import 'dart:io';
 
 import 'package:document_organiser/screens/views/category_insider.dart';
 import 'package:document_organiser/screens/views/home_screen.dart';
-import 'package:document_organiser/screens/views/image_preview.dart';
-import 'package:document_organiser/screens/views/pdf_preview.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
+import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import 'package:flutter_expandable_fab/flutter_expandable_fab.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
+
+enum AppState { free, picked, cropped }
 
 class DocumentPicker extends StatefulWidget {
   String value = "";
@@ -28,6 +29,9 @@ class DocumentPicker extends StatefulWidget {
 class DocumentPickerState extends State<DocumentPicker> {
   var notesBox;
 
+  late AppState state;
+  File? image;
+
   TextEditingController answer = TextEditingController();
 
   final String value;
@@ -38,9 +42,9 @@ class DocumentPickerState extends State<DocumentPicker> {
 
   CategoryInsiderState categoryInsiderState = CategoryInsiderState();
 
-  File? image;
   // FilePickerResult? pdfFile;
   // final picker = ImagePicker();
+
   String pdfFilePath = "";
 
   DateTime currentDate = DateTime.now();
@@ -52,6 +56,14 @@ class DocumentPickerState extends State<DocumentPicker> {
   late File file;
   String updatedImagePath = "";
   String updatedPdfPath = "";
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    state = AppState.free;
+  }
+
   Future getImageFromCamera() async {
     final pickerCameraImage =
         await ImagePicker().pickImage(source: ImageSource.camera);
@@ -60,6 +72,7 @@ class DocumentPickerState extends State<DocumentPicker> {
       if (pickerCameraImage != null) {
         image = File(pickerCameraImage.path);
         isImagePreview = true;
+        state = AppState.picked;
         isPDFPreview = false;
 
         print("pickerImageCamera.path ${image!.path}");
@@ -78,6 +91,7 @@ class DocumentPickerState extends State<DocumentPicker> {
       if (pickerImage != null) {
         image = File(pickerImage.path);
         isImagePreview = true;
+        state = AppState.picked;
         isPDFPreview = false;
 
         print("pickerImageGallery.path ${image!.path}");
@@ -174,13 +188,13 @@ class DocumentPickerState extends State<DocumentPicker> {
                       await notesBox.put(updatedImagePath, answer.text);
                       String data = notesBox.get(updatedImagePath);
                     } else {
-
                       print("Not added in database");
                     }
+
                   } else if (isPDFPreview) {
-                    final PDFPath =
-                        await File('${directory!.path}/${DateTime.now()}.pdf')
-                            .create();
+                    final PDFPath = await File(
+                            '${directory!.path}/${DateTime.now().millisecondsSinceEpoch}.pdf')
+                        .create();
                     await File(pdfFilePath).copy(PDFPath.path);
                     print("PDF.path ${PDFPath.path}");
 
@@ -194,20 +208,28 @@ class DocumentPickerState extends State<DocumentPicker> {
                       await notesBox.put(updatedPdfPath, answer.text);
                       String data = notesBox.get(updatedPdfPath);
                     } else {
-
                       print("Not added in database");
                     }
-
                   }
                   if (isImagePreview || isPDFPreview) {
                     _willPopCallback();
-
                   } else {
                     showInSnackBar("Please select a file to save");
                   }
                   // Navigator.pop(context);
                 },
-                icon: Icon(Icons.save))
+                icon: Icon(Icons.save)),
+            IconButton(
+                onPressed: () {
+                  if (state == AppState.free) {
+                    showInSnackBar("please select image file");
+                  } else if (state == AppState.picked) {
+                    _cropImage();
+                  } else if (state == AppState.cropped) {
+                    _cropImage();
+                  }
+                },
+                icon: _buildButtonIcon())
           ],
         ),
         body: SingleChildScrollView(
@@ -309,6 +331,18 @@ class DocumentPickerState extends State<DocumentPicker> {
     );
   }
 
+  Widget _buildButtonIcon() {
+    if (state == AppState.free) {
+      return const Icon(Icons.crop);
+    } else if (state == AppState.picked) {
+      return const Icon(Icons.crop);
+    } else if (state == AppState.cropped) {
+      return const Icon(Icons.crop);
+    } else {
+      return Icon(Icons.disabled_by_default);
+    }
+  }
+
   Future<String> createSubfolder(
       String subfolderName, String oldImagePath) async {
     // Get the external storage directory
@@ -346,7 +380,6 @@ class DocumentPickerState extends State<DocumentPicker> {
     print("pdated e imag ep[ath : $updatedImagePath");
 
     updatedPdfPath = "$subfolderPath/$fileName";
-
   }
 
 /*  Future<String> createSubfolder(String subfolderName) async {
@@ -454,4 +487,54 @@ class DocumentPickerState extends State<DocumentPicker> {
       controller: answer,
     );
   }
+
+  Future _cropImage() async {
+    CroppedFile? croppedFile = await ImageCropper().cropImage(
+      sourcePath: image!.path,
+      aspectRatioPresets: [
+        CropAspectRatioPreset.square,
+        CropAspectRatioPreset.ratio3x2,
+        CropAspectRatioPreset.original,
+        CropAspectRatioPreset.ratio4x3,
+        CropAspectRatioPreset.ratio16x9
+      ],
+      uiSettings: [
+        AndroidUiSettings(
+            toolbarTitle: 'Cropper',
+            toolbarColor: Colors.deepOrange,
+            toolbarWidgetColor: Colors.white,
+            initAspectRatio: CropAspectRatioPreset.original,
+            lockAspectRatio: false),
+        IOSUiSettings(
+          title: 'Cropper',
+        ),
+        WebUiSettings(
+          context: context,
+        ),
+      ],
+    );
+    if (croppedFile != null) {
+      image = convertCroppedFileToFile(croppedFile);
+      setState(() {
+        state = AppState.cropped;
+      });
+    }
+  }
+
+  File convertCroppedFileToFile(CroppedFile croppedFile) {
+    if (croppedFile.path != null) {
+      return File(croppedFile.path);
+    } else {
+      throw Exception("CroppedFile is not valid or does not contain a valid path.");
+    }
+  }
+
+  /*void _clearImage() {
+    image = null;
+
+    setState(() {
+
+      state = AppState.free;
+    });
+  }*/
 }

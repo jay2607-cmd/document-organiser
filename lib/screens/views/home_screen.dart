@@ -11,6 +11,7 @@ import 'package:pdf_thumbnail/pdf_thumbnail.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../boxes/boxes.dart';
+import '../../provider/db_provider.dart';
 import '../../settings/security.dart';
 import '../../settings/settings_screen.dart';
 import 'image_preview.dart';
@@ -37,6 +38,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   late File file;
 
+  bool isHideCreationDate = false;
+
   @override
   void initState() {
     setState(() {
@@ -45,8 +48,33 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       viewStatus();
     });
     print("initState");
+
     WidgetsBinding.instance.addObserver(this);
     super.initState();
+
+    DbProvider().getHideCreationDateStatus().then((value) {
+      isHideCreationDate = value;
+      setState(() {});
+      print("isHideCreationDate $isHideCreationDate");
+    });
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // print("didChangeAppLifecycleState");
+    if (state == AppLifecycleState.resumed) {
+      // user returned to our app
+      print("resumed");
+    } else if (state == AppLifecycleState.inactive) {
+      // app is inactive
+      print("inactive");
+    } else if (state == AppLifecycleState.paused) {
+      // user is about quit our app temporally
+      print("paused");
+    } else if (state == AppLifecycleState.detached) {
+      print("suspending");
+      // app suspended (not used in iOS)
+    }
   }
 
   SharedPreferences? isGridView;
@@ -73,6 +101,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       } else {
         identifier[filename.split("/")[0]] = 1;
       }
+
       final extension = file.path.toLowerCase().split('.').last;
       return extension == 'png';
     }).toList();
@@ -80,7 +109,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       check = 0;
       imageFiles = pngFiles!;
     });
-
   }
 
   void sortFilesByLastModified(List<File> files, String document) {
@@ -93,15 +121,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     // print("oldImagefileLength ${imageLength}");
     print("NewImagefileLength ${imageFiles.length}");
 
-    if(document == "images" ) {
+    if (document == "images") {
       // shift index
-    print("shift index");
+      print("shift index");
     }
 
-    if(document == "pdfs") {
-
-    }
-
+    if (document == "pdfs") {}
   }
 
   Future<void> loadPDF() async {
@@ -130,8 +155,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    sortFilesByLastModified(imageFiles,"images");
-    sortFilesByLastModified(pdfFiles,"pdfs");
+    sortFilesByLastModified(imageFiles, "images");
+    sortFilesByLastModified(pdfFiles, "pdfs");
     var box = Boxes.getData();
     // print("identifier size-->> ${identifier.length}");
     return WillPopScope(
@@ -361,6 +386,19 @@ height: 260,
             },
           );
   }*/
+
+  Future<DateTime> getFileLastModified(String filepath) async {
+    File file = File(filepath);
+
+    if (await file.exists()) {
+      DateTime lastModified = await file.lastModified();
+      print("lastModified ${lastModified}");
+      return lastModified;
+    } else {
+      throw Exception('File does not exist.');
+    }
+  }
+
   Widget allPDFs() {
     return pdfFiles.isEmpty
         ? Center(child: Text("No Pdf file Chosen"))
@@ -394,75 +432,97 @@ height: 260,
                             );
                           },
                           child: Card(
-                            child: Stack(
+                            child: Column(
                               children: [
-                                Align(
-                                  alignment: Alignment.center,
-                                  child: Container(
-                                      height: 300,
-                                      width: 200,
-                                      child: PdfThumbnail.fromFile(
-                                        file.path,
-                                        currentPage: 1,
-                                        height: 300,
-                                        currentPageDecoration: BoxDecoration(
-                                            border: Border.all(
-                                                color: Colors.transparent)),
-                                        backgroundColor: Colors.transparent,
-                                        onPageClicked: (page) {
-                                          Navigator.pushReplacement(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) =>
-                                                  PdfPreview.forDelete(
-                                                PdfPath: pdfFiles[index].path,
-                                                index: index,
-                                                PdfList: pdfFiles,
-                                              ),
+                                Container(
+                                    height: 193,
+                                    width: 200,
+                                    child: PdfThumbnail.fromFile(
+                                      file.path,
+                                      currentPage: 1,
+                                      height: 193,
+                                      currentPageDecoration: BoxDecoration(
+                                          border: Border.all(
+                                              color: Colors.transparent)),
+                                      backgroundColor: Colors.transparent,
+                                      onPageClicked: (page) {
+                                        Navigator.pushReplacement(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                PdfPreview.forDelete(
+                                              PdfPath: pdfFiles[index].path,
+                                              index: index,
+                                              PdfList: pdfFiles,
                                             ),
-                                          );
-                                        },
-                                      )
-                                      // SfPdfViewer.file(
-                                      //   File(file.path),
-                                      // ),
-                                      ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(vertical: 20.0),
-                                  child: Align(
-                                      alignment: Alignment.bottomCenter,
-                                      child: Text(file.path.substring(70))),
-                                ),
-                                Align(
-                                  alignment: Alignment.topRight,
-                                  child: IconButton(
-                                      onPressed: () async {
-                                        if (isFavorites) {
-                                          await box.delete(index);
-                                        } else {
-                                          await box.put(index, file.path);
-                                           var snackBar = SnackBar(
-                                            backgroundColor: Colors.blue.shade200,
-                                            content: Text(
-                                              "Added successfully",
-                                            ),
-                                            duration: Duration(seconds: 1),
-                                          );
-                                          ScaffoldMessenger.of(context)
-                                              .showSnackBar(snackBar);
-                                        }
+                                          ),
+                                        );
                                       },
-                                      icon: isFavorites
-                                          ? Icon(
-                                              Icons.bookmark,
-                                              color: Colors.red,
-                                            )
-                                          : Icon(
-                                              Icons.bookmark_border,
-                                              color: Colors.red,
-                                            )),
-                                )
+                                    )
+                                    // SfPdfViewer.file(
+                                    //   File(file.path),
+                                    // ),
+                                    ),
+                                Column(
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 20.0),
+                                      child: Text(file.path.substring(70)),
+                                    ),
+                                    isHideCreationDate
+                                        ? Text("")
+                                        : FutureBuilder<DateTime>(
+                                            future:
+                                                getFileLastModified(file.path),
+                                            builder: (BuildContext context,
+                                                AsyncSnapshot<DateTime>
+                                                    snapshot) {
+                                              if (snapshot.connectionState ==
+                                                  ConnectionState.waiting) {
+                                                // While waiting for the result, show a progress indicator
+                                                return CircularProgressIndicator();
+                                              } else if (snapshot.hasError) {
+                                                // If an error occurred during the Future execution
+                                                return Text(
+                                                    'Error: ${snapshot.error}');
+                                              } else {
+                                                // If the Future completed successfully, show the last modified date
+                                                DateTime lastModified =
+                                                    snapshot.data!;
+                                                return Text(
+                                                    "${lastModified.toString().substring(0, lastModified.toString().length - 4)}");
+                                              }
+                                            },
+                                          ),
+                                  ],
+                                ),
+                                IconButton(
+                                    onPressed: () async {
+                                      if (isFavorites) {
+                                        await box.delete(file.path);
+                                      } else {
+                                        await box.put(file.path, true);
+                                        var snackBar = SnackBar(
+                                          backgroundColor: Colors.blue.shade200,
+                                          content: Text(
+                                            "Added successfully",
+                                          ),
+                                          duration: Duration(seconds: 1),
+                                        );
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(snackBar);
+                                      }
+                                    },
+                                    icon: isFavorites
+                                        ? Icon(
+                                            Icons.bookmark,
+                                            color: Colors.red,
+                                          )
+                                        : Icon(
+                                            Icons.bookmark_border,
+                                            color: Colors.red,
+                                          ))
                               ],
                             ),
                           ),
@@ -470,12 +530,6 @@ height: 260,
                       },
                     )
                   : ListView.builder(
-                      /*gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  childAspectRatio: 1.5 / 3,
-                  crossAxisSpacing: 20.0,
-                  mainAxisSpacing: 30.0,
-                ),*/
                       itemCount: pdfFiles.length,
                       itemBuilder: (BuildContext context, int index) {
                         final isFavorites = box.get(index) != null;
@@ -495,7 +549,8 @@ height: 260,
                             );
                           },
                           child: Card(
-                            child: Stack(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
                               children: [
                                 Container(
                                     height: 120,
@@ -526,42 +581,68 @@ height: 260,
                                     //   File(file.path),
                                     // ),
                                     ),
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 35.0),
-                                  child: Align(
-                                      alignment: Alignment.topCenter,
-                                      child: Text(file.path.substring(70))),
+                                Column(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 35.0),
+                                      child: Text(file.path.substring(70)),
+                                    ),
+                                    isHideCreationDate
+                                        ? Text("")
+                                        : FutureBuilder<DateTime>(
+                                            future:
+                                                getFileLastModified(file.path),
+                                            builder: (BuildContext context,
+                                                AsyncSnapshot<DateTime>
+                                                    snapshot) {
+                                              if (snapshot.connectionState ==
+                                                  ConnectionState.waiting) {
+                                                // While waiting for the result, show a progress indicator
+                                                return CircularProgressIndicator();
+                                              } else if (snapshot.hasError) {
+                                                // If an error occurred during the Future execution
+                                                return Text(
+                                                    'Error: ${snapshot.error}');
+                                              } else {
+                                                // If the Future completed successfully, show the last modified date
+                                                DateTime lastModified =
+                                                    snapshot.data!;
+
+                                                return Text(
+                                                    "${lastModified.toString().substring(0, lastModified.toString().length - 4)}");
+                                              }
+                                            },
+                                          ),
+                                  ],
                                 ),
                                 Padding(
                                   padding: const EdgeInsets.only(top: 25.0),
-                                  child: Align(
-                                    alignment: Alignment.topRight,
-                                    child: IconButton(
-                                        onPressed: () async {
-                                          if (isFavorites) {
-                                            await box.delete(index);
-                                          } else {
-                                            await box.put(index, file.path);
-                                            const snackBar = SnackBar(
-                                              content: Text(
-                                                "Added successfully",
-                                              ),
-                                              duration: Duration(seconds: 1),
-                                            );
-                                            ScaffoldMessenger.of(context)
-                                                .showSnackBar(snackBar);
-                                          }
-                                        },
-                                        icon: isFavorites
-                                            ? Icon(
-                                                Icons.bookmark,
-                                                color: Colors.red,
-                                              )
-                                            : Icon(
-                                                Icons.bookmark_border,
-                                                color: Colors.red,
-                                              )),
-                                  ),
+                                  child: IconButton(
+                                      onPressed: () async {
+                                        if (isFavorites) {
+                                          await box.delete(index);
+                                        } else {
+                                          await box.put(index, file.path);
+                                          const snackBar = SnackBar(
+                                            content: Text(
+                                              "Added successfully",
+                                            ),
+                                            duration: Duration(seconds: 1),
+                                          );
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(snackBar);
+                                        }
+                                      },
+                                      icon: isFavorites
+                                          ? Icon(
+                                              Icons.bookmark,
+                                              color: Colors.red,
+                                            )
+                                          : Icon(
+                                              Icons.bookmark_border,
+                                              color: Colors.red,
+                                            )),
                                 )
                               ],
                             ),
@@ -588,7 +669,7 @@ height: 260,
                       ),
                       itemCount: imageFiles.length,
                       itemBuilder: (BuildContext context, index) {
-                        final isFavorites = box.get(index) != null;
+                        final isFavorites = box.get(file.path) != null;
                         file = imageFiles[index];
 
                         return GestureDetector(
@@ -612,60 +693,84 @@ height: 260,
                               child: Card(
                                 child: Padding(
                                   padding: const EdgeInsets.all(8.0),
-                                  child: Stack(
+                                  child: Column(
                                     // crossAxisAlignment: CrossAxisAlignment.center,
-                                    // mainAxisAlignment: MainAxisAlignment.center,
+                                    mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      Align(
-                                        alignment: Alignment.centerLeft,
-                                        child: Container(
-                                            height: 200,
-                                            width: 150,
-                                            child: Image.file(file)),
-                                      ),
+                                      Container(
+                                          height: 200,
+                                          width: 150,
+                                          child: Image.file(file)),
                                       // Text(file.path),
-                                      Padding(
-                                        padding: const EdgeInsets.only(
-                                            top: 12.0, left: 6),
-                                        child: Align(
-                                          alignment: Alignment.bottomCenter,
-                                          child: SingleChildScrollView(
-                                              scrollDirection: Axis.horizontal,
-                                              child: Text(
-                                                file.path.substring(70),
-                                              )),
-                                        ),
+                                      Column(
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.only(
+                                                top: 12.0, left: 6),
+                                            child: SingleChildScrollView(
+                                                scrollDirection:
+                                                    Axis.horizontal,
+                                                child: Text(
+                                                  file.path.substring(70),
+                                                )),
+                                          ),
+                                          isHideCreationDate
+                                              ? Text("")
+                                              : FutureBuilder<DateTime>(
+                                                  future: getFileLastModified(
+                                                      file.path),
+                                                  builder: (BuildContext
+                                                          context,
+                                                      AsyncSnapshot<DateTime>
+                                                          snapshot) {
+                                                    if (snapshot
+                                                            .connectionState ==
+                                                        ConnectionState
+                                                            .waiting) {
+                                                      // While waiting for the result, show a progress indicator
+                                                      return CircularProgressIndicator();
+                                                    } else if (snapshot
+                                                        .hasError) {
+                                                      // If an error occurred during the Future execution
+                                                      return Text(
+                                                          'Error: ${snapshot.error}');
+                                                    } else {
+                                                      // If the Future completed successfully, show the last modified date
+                                                      DateTime lastModified =
+                                                          snapshot.data!;
+                                                      return Text(
+                                                          "${lastModified.toString().substring(0, lastModified.toString().length - 4)}");
+                                                    }
+                                                  },
+                                                ),
+                                        ],
                                       ),
 
-                                      Align(
-                                        alignment: Alignment.topRight,
-                                        child: IconButton(
-                                            onPressed: () async {
-                                              if (isFavorites) {
-                                                await box.delete(index);
-                                              } else {
-                                                await box.put(index, file.path);
-                                                const snackBar = SnackBar(
-                                                  content: Text(
-                                                    "Added successfully",
-                                                  ),
-                                                  duration:
-                                                      Duration(seconds: 1),
-                                                );
-                                                ScaffoldMessenger.of(context)
-                                                    .showSnackBar(snackBar);
-                                              }
-                                            },
-                                            icon: isFavorites
-                                                ? Icon(
-                                                    Icons.bookmark,
-                                                    color: Colors.red,
-                                                  )
-                                                : Icon(
-                                                    Icons.bookmark_border,
-                                                    color: Colors.red,
-                                                  )),
-                                      )
+                                      IconButton(
+                                          onPressed: () async {
+                                            if (isFavorites) {
+                                              await box.delete(index);
+                                            } else {
+                                              await box.put(file.path, true);
+                                              const snackBar = SnackBar(
+                                                content: Text(
+                                                  "Added successfully",
+                                                ),
+                                                duration: Duration(seconds: 1),
+                                              );
+                                              ScaffoldMessenger.of(context)
+                                                  .showSnackBar(snackBar);
+                                            }
+                                          },
+                                          icon: isFavorites
+                                              ? Icon(
+                                                  Icons.bookmark,
+                                                  color: Colors.red,
+                                                )
+                                              : Icon(
+                                                  Icons.bookmark_border,
+                                                  color: Colors.red,
+                                                ))
 
                                       // child: Image.file(file),
                                       // Container(
@@ -687,12 +792,6 @@ height: 260,
                       },
                     )
                   : ListView.builder(
-                      /*gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 1,
-            childAspectRatio: 1.5 / 3,
-            // crossAxisSpacing: 20.0,
-            // mainAxisSpacing: 30.0,
-          ),*/
                       itemCount: imageFiles.length,
                       itemBuilder: (BuildContext context, index) {
                         final isFavorites = box.get(index) != null;
@@ -719,69 +818,91 @@ height: 260,
                               child: Card(
                                 child: Padding(
                                   padding: const EdgeInsets.all(8.0),
-                                  child: Stack(
-                                    // crossAxisAlignment: CrossAxisAlignment.center,
-                                    // mainAxisAlignment: MainAxisAlignment.center,
+                                  child: Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                     children: [
-                                      Align(
-                                        alignment: Alignment.centerLeft,
-                                        child: Container(
-                                            height: 70,
-                                            width: 80,
-                                            child: Image.file(file)),
-                                      ),
+                                      Container(
+                                          height: 70,
+                                          width: 80,
+                                          child: Image.file(file)),
                                       // Text(file.path),
-                                      Padding(
-                                        padding: const EdgeInsets.only(
-                                            top: 12.0, left: 6),
-                                        child: Align(
-                                          alignment: Alignment.center,
-                                          child: SingleChildScrollView(
-                                              scrollDirection: Axis.horizontal,
-                                              child: Text(
-                                                file.path.substring(70),
-                                              )),
-                                        ),
+                                      Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceEvenly,
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.only(
+                                                top: 12.0, left: 6),
+                                            child: Align(
+                                              alignment: Alignment.center,
+                                              child: SingleChildScrollView(
+                                                  scrollDirection:
+                                                      Axis.horizontal,
+                                                  child: Text(
+                                                    file.path.substring(70),
+                                                  )),
+                                            ),
+                                          ),
+                                          isHideCreationDate
+                                              ? Text("")
+                                              : FutureBuilder<DateTime>(
+                                                  future: getFileLastModified(
+                                                      file.path),
+                                                  builder: (BuildContext
+                                                          context,
+                                                      AsyncSnapshot<DateTime>
+                                                          snapshot) {
+                                                    if (snapshot
+                                                            .connectionState ==
+                                                        ConnectionState
+                                                            .waiting) {
+                                                      // While waiting for the result, show a progress indicator
+                                                      return CircularProgressIndicator();
+                                                    } else if (snapshot
+                                                        .hasError) {
+                                                      // If an error occurred during the Future execution
+                                                      return Text(
+                                                          'Error: ${snapshot.error}');
+                                                    } else {
+                                                      // If the Future completed successfully, show the last modified date
+                                                      DateTime lastModified =
+                                                          snapshot.data!;
+                                                      return Text(
+                                                          "${lastModified.toString().substring(0, lastModified.toString().length - 4)}");
+                                                    }
+                                                  },
+                                                ),
+                                        ],
                                       ),
 
-                                      Align(
-                                        alignment: Alignment.topRight,
-                                        child: IconButton(
-                                            onPressed: () async {
-                                              if (isFavorites) {
-                                                await box.delete(index);
-                                              } else {
-                                                await box.put(index, file.path);
-                                                const snackBar = SnackBar(
-                                                  content: Text(
-                                                    "Added successfully",
-                                                  ),
-                                                  duration:
-                                                      Duration(seconds: 1),
-                                                );
-                                                ScaffoldMessenger.of(context)
-                                                    .showSnackBar(snackBar);
-                                              }
-                                            },
-                                            icon: isFavorites
-                                                ? Icon(
-                                                    Icons.bookmark,
-                                                    color: Colors.red,
-                                                  )
-                                                : Icon(
-                                                    Icons.bookmark_border,
-                                                    color: Colors.red,
-                                                  )),
-                                      )
-
-                                      // child: Image.file(file),
-                                      // Container(
-                                      //   height: 260,
-                                      //   width: 250,
-                                      //   child: SfPdfViewer.file(
-                                      //     File(file.path),
-                                      //   ),
-                                      // ),
+                                      IconButton(
+                                          onPressed: () async {
+                                            if (isFavorites) {
+                                              await box.delete(index);
+                                            } else {
+                                              await box.put(index, file.path);
+                                              const snackBar = SnackBar(
+                                                content: Text(
+                                                  "Added successfully",
+                                                ),
+                                                duration: Duration(seconds: 1),
+                                              );
+                                              ScaffoldMessenger.of(context)
+                                                  .showSnackBar(snackBar);
+                                            }
+                                          },
+                                          icon: isFavorites
+                                              ? Icon(
+                                                  Icons.bookmark,
+                                                  color: Colors.red,
+                                                )
+                                              : Icon(
+                                                  Icons.bookmark_border,
+                                                  color: Colors.red,
+                                                ))
 
                                       // Text(file.path),
                                     ],

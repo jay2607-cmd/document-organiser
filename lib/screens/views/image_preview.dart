@@ -6,6 +6,8 @@ import 'package:hive/hive.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../../provider/db_provider.dart';
+
 class ImagePreview extends StatefulWidget {
   List<File> imageFiles = [];
   int index = 0;
@@ -29,11 +31,17 @@ class ImagePreview extends StatefulWidget {
 
 class _ImagePreviewState extends State<ImagePreview> {
   late TextEditingController editingController;
+  bool isNotesSharingEnabled = false;
 
   @override
   void initState() {
     super.initState();
     openBox();
+    DbProvider().getSharingNotesState().then((value) {
+      setState(() {
+        isNotesSharingEnabled = value;
+      });
+    });
   }
 
   var notesBox;
@@ -86,8 +94,13 @@ class _ImagePreviewState extends State<ImagePreview> {
                         child: IconButton(
                           color: Colors.blue,
                           onPressed: () async {
-                            Share.shareFiles([widget.filePath],
-                                text: widget.filePath.substring(70));
+                            Share.shareFiles(
+                              [widget.filePath],
+                              text: isNotesSharingEnabled
+                                  ? "${widget.filePath.substring(70)} \n"
+                                      "Note : ${await notesBox.get(widget.filePath)}"
+                                  : "${widget.filePath.substring(70)}",
+                            );
                           },
                           icon: Icon(Icons.share),
                         ),
@@ -225,13 +238,14 @@ class _ImagePreviewState extends State<ImagePreview> {
                                             "editingController.text ${editingController.text}");
 
                                         // update new data into database
-                                        await notesBox.put(widget.filePath, editingController.text);
+                                        await notesBox.put(widget.filePath,
+                                            editingController.text);
 
                                         // retrieve that saved data
                                         data =
                                             await notesBox.get(widget.filePath);
 
-                                        print("Edited Date $data");
+                                        print("Edited Data $data");
 
                                         setState(() {});
                                         editingController.clear();

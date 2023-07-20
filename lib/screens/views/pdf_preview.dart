@@ -8,10 +8,14 @@ import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import 'home_screen.dart';
 
 class PdfPreview extends StatefulWidget {
-   late String PdfPath;
-   late List PdfList;
-   late int index;
-  PdfPreview.forDelete({super.key, required this.PdfPath,required this.PdfList, required this.index});
+  late String PdfPath;
+  late List PdfList;
+  late int index;
+  PdfPreview.forDelete(
+      {super.key,
+      required this.PdfPath,
+      required this.PdfList,
+      required this.index});
 
   // PdfPreview.forShare({super.key, required this.PdfPath});
 
@@ -33,7 +37,6 @@ class _PdfPreviewState extends State<PdfPreview> {
     notesBox = await Hive.openBox("Notes");
   }
 
-
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -44,18 +47,20 @@ class _PdfPreviewState extends State<PdfPreview> {
           actions: [
             IconButton(
               onPressed: () async {
-                Share.shareFiles([widget.PdfPath],
-                    text: widget.PdfPath.substring(67, 86));
+                Share.shareFiles(
+                  [widget.PdfPath],
+                  // text: "jay",
+                  //     // "Note : ${notesBox.get(widget.PdfPath)}",
+                );
+                print(notesBox.get(widget.PdfPath));
               },
               icon: Icon(Icons.share),
             ),
-
             IconButton(
               onPressed: () async {
                 setState(() {});
                 // show the info for the image
-                print(
-                    "widget.filePath ${widget.PdfPath.toString()}");
+                print("widget.filePath ${widget.PdfPath.toString()}");
 
                 if (await notesBox.get(widget.PdfPath) != null) {
                   String data = await notesBox.get(widget.PdfPath);
@@ -70,40 +75,36 @@ class _PdfPreviewState extends State<PdfPreview> {
             ),
             IconButton(
               onPressed: () async {
-
-                  showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return AlertDialog(
-                        title: const Text('Warning!',
-                            style: TextStyle(color: Colors.red)),
-                        content: const Text(
-                            'Are you really want to delete this file!'),
-                        actions: [
-                          TextButton(
-                            child: Text('Cancel'),
-                            onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      title: const Text('Warning!',
+                          style: TextStyle(color: Colors.red)),
+                      content: const Text(
+                          'Are you really want to delete this file!'),
+                      actions: [
+                        TextButton(
+                          child: Text('Cancel'),
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                        ),
+                        TextButton(
+                          child: Text('OK'),
+                          onPressed: () {
+                            setState(() {
+                              deleteFile(widget.PdfPath, widget.index);
                               Navigator.pop(context);
-                            },
-                          ),
-                          TextButton(
-                            child: Text('OK'),
-                            onPressed: () {
-                              setState(() {
-                                deleteFile(
-                                    widget.PdfPath, widget.index);
-                                Navigator.pop(context);
-                                setState(() {});
-                              });
-                            },
-                          ),
-                        ],
-                      );
-                    },
-                  );
-                },
-
-
+                              setState(() {});
+                            });
+                          },
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
               icon: Icon(Icons.delete),
             ),
           ],
@@ -119,10 +120,8 @@ class _PdfPreviewState extends State<PdfPreview> {
       if (await file.exists()) {
         await file.delete();
         setState(() {
-
-          widget.PdfList
-              .removeAt(index);
-          widget.PdfList.remove(file);// Remove the deleted file from the list
+          widget.PdfList.removeAt(index);
+          widget.PdfList.remove(file); // Remove the deleted file from the list
         });
         // widget.imageFiles.removeAt(index);
 
@@ -142,7 +141,6 @@ class _PdfPreviewState extends State<PdfPreview> {
         context, MaterialPageRoute(builder: (context) => HomeScreen()));
     return Future.value(true);
   }
-
 
   void _openBottomDialog(BuildContext context, String data, String filePath) {
     showModalBottomSheet(
@@ -182,7 +180,7 @@ class _PdfPreviewState extends State<PdfPreview> {
                                             borderSide: const BorderSide(
                                                 color: Colors.blue),
                                             borderRadius:
-                                            BorderRadius.circular(10)),
+                                                BorderRadius.circular(10)),
                                         hintText: 'Notes',
                                         // helperText: 'Keep it meaningful for future purposes',
                                         labelText: ' Notes (Optional)',
@@ -201,7 +199,7 @@ class _PdfPreviewState extends State<PdfPreview> {
 
                                         // retrieve that saved data
                                         data =
-                                        await notesBox.get(widget.PdfPath);
+                                            await notesBox.get(widget.PdfPath);
 
                                         print("Edited Date $data");
 
@@ -222,12 +220,12 @@ class _PdfPreviewState extends State<PdfPreview> {
                       )),
                   data.isNotEmpty
                       ? Text(
-                    data,
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  )
+                          data,
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        )
                       : Text("Empty Notes"),
 
                   // Add more Text widgets or any other content you need
@@ -240,5 +238,4 @@ class _PdfPreviewState extends State<PdfPreview> {
       },
     );
   }
-
 }
