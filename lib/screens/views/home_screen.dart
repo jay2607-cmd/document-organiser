@@ -22,7 +22,22 @@ class HomeScreen extends StatefulWidget {
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
-
+var categoryList = [
+  "Invoice",
+  "Personal",
+  "Bank",
+  "Medical",
+  "Business",
+  "Ticket",
+  "Water",
+  "Electricity",
+  "Gas",
+  "Book",
+  "Book",
+  "School",
+  "Product",
+  "Contract"
+];
 class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   List<File> imageFiles = [];
   List<File> pdfFiles = [];
@@ -57,6 +72,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       setState(() {});
       print("isHideCreationDate $isHideCreationDate");
     });
+
   }
 
   @override

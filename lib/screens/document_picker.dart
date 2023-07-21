@@ -27,7 +27,13 @@ class DocumentPicker extends StatefulWidget {
 }
 
 class DocumentPickerState extends State<DocumentPicker> {
+
+  bool isAdded = false;
+
   var notesBox;
+
+  List<File> imageFiles = [];
+  List<File> pdfFiles = [];
 
   late AppState state;
   File? image;
@@ -41,9 +47,6 @@ class DocumentPickerState extends State<DocumentPicker> {
   final pdf = pw.Document();
 
   CategoryInsiderState categoryInsiderState = CategoryInsiderState();
-
-  // FilePickerResult? pdfFile;
-  // final picker = ImagePicker();
 
   String pdfFilePath = "";
 
@@ -63,6 +66,7 @@ class DocumentPickerState extends State<DocumentPicker> {
     super.initState();
     state = AppState.free;
   }
+
 
   Future getImageFromCamera() async {
     final pickerCameraImage =
@@ -128,9 +132,6 @@ class DocumentPickerState extends State<DocumentPicker> {
 
   String subfolderPath = "";
 
-  List<File> imageFiles = [];
-  List<File> pdfFiles = [];
-
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -149,6 +150,23 @@ class DocumentPickerState extends State<DocumentPicker> {
                 if (isImagePreview) {
                   await createPDF();
                   await savePDF();
+
+                  isAdded = true;
+
+                  var outerBox = await Hive.openBox("OuterCount");
+                  // int count = outerBox  != null ? outerBox.get(widget.value) : isAdded = false;
+
+                  int count = outerBox == null
+                      ? 0
+                      : outerBox.get(widget.value) ==
+                      null
+                      ? 0
+                      : outerBox.get(widget.value);
+
+                  if(isAdded) {
+                    outerBox.put(widget.value, count+1);
+                  }
+
                   showInSnackBar("Image saved as a Document");
                   _willPopCallback();
                 } else if (isPDFPreview) {
@@ -212,7 +230,27 @@ class DocumentPickerState extends State<DocumentPicker> {
                     }
                   }
                   if (isImagePreview || isPDFPreview) {
+
+                    isAdded = true;
+
+                    var outerBox = await Hive.openBox("OuterCount");
+                    // int count = outerBox  != null ? outerBox.get(widget.value) : isAdded = false;
+
+                    int count = outerBox == null
+                        ? 0
+                        : outerBox.get(widget.value) ==
+                        null
+                        ? 0
+                        : outerBox.get(widget.value);
+
+                    if(isAdded) {
+                      outerBox.put(widget.value, count+1);
+                    }
+
                     _willPopCallback();
+                    showInSnackBar("Image Saved");
+
+
                   } else {
                     showInSnackBar("Please select a file to save");
                   }

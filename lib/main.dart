@@ -26,9 +26,25 @@ Future<void> main() async {
 
   await Hive.openBox<Save>("saveCategories");
 
-  // for bookmark
   await Hive.initFlutter();
+  // for bookmark
   await Hive.openBox("favorites");
+
+  // for OuterCount
+  await Hive.openBox("OuterCount");
+
+  // for Notes
+  await Hive.openBox("Notes");
+
+  // for Password
+  await Hive.openBox("Password");
+
+  //for question
+  await Hive.openBox("Question");
+
+
+
+
 
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitDown,

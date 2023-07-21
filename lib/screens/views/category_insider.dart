@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:document_organiser/screens/document_picker.dart';
 import 'package:document_organiser/screens/views/pdf_preview.dart';
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf_thumbnail/pdf_thumbnail.dart';
@@ -59,12 +58,6 @@ class CategoryInsiderState extends State<CategoryInsider> {
       imageFiles = pngFiles;
     });
 
-    var outerCountBox = await Hive.openBox("OuterCount");
-
-    // if (imageFiles.length != 0) {
-      await outerCountBox.put(widget.categoryLabel,
-          {imageFiles.length + pdfFiles.length});
-    // }
 
     SharedPreferences imageLengthPref = await SharedPreferences.getInstance();
 
@@ -97,6 +90,10 @@ class CategoryInsiderState extends State<CategoryInsider> {
     setState(() {
       pdfFiles = PDFFiles;
     });
+
+    var outerCountBox = await Hive.openBox("OuterCount");
+    int count = (imageFiles.length + pdfFiles.length);
+    await outerCountBox.put(widget.categoryLabel, count);
   }
 
   @override
