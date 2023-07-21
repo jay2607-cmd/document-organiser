@@ -6,6 +6,7 @@ import 'package:hive_flutter/adapters.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../database/save.dart';
+import '../../provider/db_provider.dart';
 import 'category_insider.dart';
 
 class Categories extends StatefulWidget {
@@ -47,9 +48,14 @@ class CategoriesState extends State<Categories> {
 
   @override
   void initState() {
+    super.initState();
+
     isLogin();
     loadCountFromDatabase();
-    super.initState();
+
+
+
+    // hideEmptyCategories();
   }
 
   Future<void> isLogin() async {
@@ -112,6 +118,7 @@ class CategoriesState extends State<Categories> {
       prefs.setBool("isFirst", true);
     } else {
       if (prefs.getBool("isFirst")! == false) {
+
         var data = Save(name: "Invoice", image: '');
         var box = Boxes.getData();
         box.add(data);
@@ -169,7 +176,27 @@ class CategoriesState extends State<Categories> {
         prefs.setBool("isFirst", true);
       }
     }
+    // print("isHideEmptyCategories $isEmptyCategories");
   }
+
+  /*hideEmptyCategories() {
+    if (isHideEmptyCategories2) {
+      // print("isHideEmptyCategories $isHideEmptyCategories");
+      // get the category length
+
+      for (int i = 0; i < categoryList.length; i++) {
+        outerCountBox == null
+            ? print("Got Null Value")
+            : outerCountBox.get(categoryList[i]) == null ||
+            outerCountBox.get(categoryList[i]) == 0
+            ? print("delete those categories ")
+            : "${outerCountBox.get(categoryList[i]).toString()} ";
+      }
+
+      // check zero length category
+      // delete those categories
+    }
+  }*/
 
   var categoryMap = new Map();
   /*var categoryMap =  {
@@ -207,7 +234,7 @@ class CategoriesState extends State<Categories> {
     //
     // }
 
-   /* // count = await outerCountBox.get("Invoice");
+    /* // count = await outerCountBox.get("Invoice");
     // print("count >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ${count}");
     //
     // print(
@@ -312,7 +339,10 @@ class CategoriesState extends State<Categories> {
                                 outerCountBox == null
                                     ? ""
                                     : outerCountBox.get(data[index].name) ==
-                                            null
+                                                null ||
+                                            outerCountBox
+                                                    .get(data[index].name) ==
+                                                0
                                         ? ""
                                         : "${outerCountBox.get(data[index].name).toString()} ",
                                 style: TextStyle(fontWeight: FontWeight.bold)),

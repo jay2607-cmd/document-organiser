@@ -12,6 +12,7 @@ class SettingScreen extends StatefulWidget {
 class _SettingScreenState extends State<SettingScreen> {
   bool isNotesSharingEnabled = false;
   bool isHideCreationDate = false;
+  bool isEmptyCategories = false;
 
   @override
   void initState() {
@@ -26,6 +27,12 @@ class _SettingScreenState extends State<SettingScreen> {
     DbProvider().getHideCreationDateStatus().then((value) {
       setState(() {
         isHideCreationDate = value;
+      });
+    });
+
+    DbProvider().getEmptyCategories().then((value) {
+      setState(() {
+        isEmptyCategories = value;
       });
     });
 
@@ -63,6 +70,19 @@ class _SettingScreenState extends State<SettingScreen> {
                     DbProvider().saveHideCreationDateStatus(value);
                   }),
             ),
+
+            ListTile(
+              title: Text("Hide Empty Categories"),
+              trailing: Switch(
+                  value: isEmptyCategories,
+                  onChanged: (bool value) async {
+                    setState(() {
+                      isEmptyCategories = value;
+                    });
+                    DbProvider().saveEmptyCategories(value);
+                  }),
+            ),
+
           ],
         ));
   }

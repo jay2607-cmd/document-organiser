@@ -13,6 +13,8 @@ import 'package:flutter_expandable_fab/flutter_expandable_fab.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
+import '../provider/db_provider.dart';
+
 enum AppState { free, picked, cropped }
 
 class DocumentPicker extends StatefulWidget {
@@ -59,12 +61,20 @@ class DocumentPickerState extends State<DocumentPicker> {
   late File file;
   String updatedImagePath = "";
   String updatedPdfPath = "";
+  bool isEmptyCategories = false;
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     state = AppState.free;
+    DbProvider().getEmptyCategories().then((value) {
+      setState(() {
+        isEmptyCategories = value;
+      });
+    });
+
+    print("isEmptyCategories $isEmptyCategories");
   }
 
 

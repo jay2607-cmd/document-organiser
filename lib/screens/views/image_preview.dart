@@ -13,6 +13,9 @@ class ImagePreview extends StatefulWidget {
   int index = 0;
   String filePath = "";
   File? file;
+  String categoryLabel = "";
+
+
 
   ImagePreview({
     super.key,
@@ -20,7 +23,18 @@ class ImagePreview extends StatefulWidget {
     required this.file,
     required this.imageFiles,
     required this.index,
-  });
+  }
+  );
+
+  ImagePreview.withCategoryName({
+    super.key,
+    required this.filePath,
+    required this.file,
+    required this.imageFiles,
+    required this.index,
+    required this.categoryLabel
+  }
+  );
 
   String updatedPath = "";
   ImagePreview.withInfo({super.key, required this.updatedPath});
@@ -32,6 +46,8 @@ class ImagePreview extends StatefulWidget {
 class _ImagePreviewState extends State<ImagePreview> {
   late TextEditingController editingController;
   bool isNotesSharingEnabled = false;
+
+  bool isRemoved = false;
 
   @override
   void initState() {
@@ -133,9 +149,25 @@ class _ImagePreviewState extends State<ImagePreview> {
                                     TextButton(
                                       child: Text('OK'),
                                       onPressed: () {
-                                        setState(() {
+                                        setState(() async{
                                           deleteFile(
                                               widget.filePath, widget.index);
+                                          isRemoved = true;
+
+                                          var outerBox = await Hive.openBox("OuterCount");
+                                          // int count = outerBox  != null ? outerBox.get(widget.value) : isAdded = false;
+
+                                          int count = outerBox == null
+                                              ? 0
+                                              : outerBox.get(widget.categoryLabel) ==
+                                              null
+                                              ? 0
+                                              : outerBox.get(widget.categoryLabel);
+
+                                          if(isRemoved) {
+                                            outerBox.put(widget.categoryLabel, count-1);
+                                          }
+
                                           Navigator.pop(context);
                                           setState(() {});
                                         });

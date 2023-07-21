@@ -23,6 +23,8 @@ class CategoryInsiderState extends State<CategoryInsider> {
   List<File> imageFiles = [];
   List<File> pdfFiles = [];
 
+  bool isAllFilesRemoved = false;
+
   late File file;
 
   late String filepath;
@@ -58,10 +60,10 @@ class CategoryInsiderState extends State<CategoryInsider> {
       imageFiles = pngFiles;
     });
 
-
     SharedPreferences imageLengthPref = await SharedPreferences.getInstance();
 
-    imageLengthPref.setInt(widget.categoryLabel,(imageFiles.length+pdfFiles.length));
+    imageLengthPref.setInt(
+        widget.categoryLabel, (imageFiles.length + pdfFiles.length));
     print(
         "Added value in database : ${widget.categoryLabel} ::::: ${imageLengthPref.getInt(widget.categoryLabel)}");
 
@@ -170,8 +172,23 @@ class CategoryInsiderState extends State<CategoryInsider> {
                             ),
                             TextButton(
                               child: Text('OK'),
-                              onPressed: () {
+                              onPressed: () async{
                                 deleteAllFilesInFolder();
+                                isAllFilesRemoved = true;
+
+                                var outerBox = await Hive.openBox("OuterCount");
+                                // int count = outerBox  != null ? outerBox.get(widget.value) : isAdded = false;
+
+                                int count = outerBox == null
+                                    ? 0
+                                    : outerBox.get(widget.categoryLabel) ==
+                                    null
+                                    ? 0
+                                    : outerBox.get(widget.categoryLabel);
+
+                                if(isAllFilesRemoved) {
+                                  outerBox.put(widget.categoryLabel, 0);
+                                }
                                 Navigator.pop(context);
                               },
                             ),
@@ -457,11 +474,13 @@ class CategoryInsiderState extends State<CategoryInsider> {
                       Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => ImagePreview(
+                              builder: (context) =>
+                                  ImagePreview.withCategoryName(
                                     filePath: imageFiles[index].path,
                                     file: imageFiles[index],
                                     imageFiles: imageFiles,
                                     index: index,
+                                    categoryLabel: "${widget.categoryLabel}",
                                   )));
                     },
                     child: Container(

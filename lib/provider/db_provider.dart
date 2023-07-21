@@ -9,6 +9,11 @@ class DbProvider {
   final Future<SharedPreferences> _hideCreationDate =
       SharedPreferences.getInstance();
 
+  final Future<SharedPreferences> _hideEmptyCategoriesPref =
+      SharedPreferences.getInstance();
+
+
+
   // for authentication setting
   void saveAuthState(bool status) async {
     final instance = await _passcodeAuthentication;
@@ -57,6 +62,23 @@ class DbProvider {
     final instance = await _hideCreationDate;
     if (instance.containsKey("hideCreationDate")) {
       final value = instance.getBool("hideCreationDate");
+      return value!;
+    } else {
+      return false;
+    }
+  }
+  // for hide the empty category
+  void saveEmptyCategories(bool status) async {
+    final instance = await _hideEmptyCategoriesPref;
+
+    instance.setBool("hideEmptyCategories", status);
+  }
+
+  // for hide the empty category
+  Future<bool> getEmptyCategories() async {
+    final instance = await _hideEmptyCategoriesPref;
+    if (instance.containsKey("hideEmptyCategories")) {
+      final value = instance.getBool("hideEmptyCategories");
       return value!;
     } else {
       return false;
