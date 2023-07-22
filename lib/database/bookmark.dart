@@ -1,14 +1,10 @@
 import 'package:hive/hive.dart';
 part 'bookmark.g.dart';
 
-@HiveType(typeId: 0)
-class Notes extends HiveObject{
+@HiveType(typeId: 1)
+class Bookmark extends HiveObject {
   @HiveField(0)
-  late String imagePath;
+  late String path;
 
-  @HiveField(1)
-  late String pdfPath;
-
-  Notes({required this.imagePath, required this.pdfPath});
-
+  Bookmark({required this.path});
 }

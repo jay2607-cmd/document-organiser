@@ -53,8 +53,6 @@ class CategoriesState extends State<Categories> {
     isLogin();
     loadCountFromDatabase();
 
-
-
     // hideEmptyCategories();
   }
 

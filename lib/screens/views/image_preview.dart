@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:io';
 
 import 'package:document_organiser/screens/views/home_screen.dart';
@@ -15,26 +17,21 @@ class ImagePreview extends StatefulWidget {
   File? file;
   String categoryLabel = "";
 
-
-
   ImagePreview({
     super.key,
     required this.filePath,
     required this.file,
     required this.imageFiles,
     required this.index,
-  }
-  );
+  });
 
-  ImagePreview.withCategoryName({
-    super.key,
-    required this.filePath,
-    required this.file,
-    required this.imageFiles,
-    required this.index,
-    required this.categoryLabel
-  }
-  );
+  ImagePreview.withCategoryName(
+      {super.key,
+      required this.filePath,
+      required this.file,
+      required this.imageFiles,
+      required this.index,
+      required this.categoryLabel});
 
   String updatedPath = "";
   ImagePreview.withInfo({super.key, required this.updatedPath});
@@ -48,6 +45,8 @@ class _ImagePreviewState extends State<ImagePreview> {
   bool isNotesSharingEnabled = false;
 
   bool isRemoved = false;
+
+  TextEditingController renameController = TextEditingController();
 
   @override
   void initState() {
@@ -149,23 +148,27 @@ class _ImagePreviewState extends State<ImagePreview> {
                                     TextButton(
                                       child: Text('OK'),
                                       onPressed: () {
-                                        setState(() async{
+                                        setState(() async {
                                           deleteFile(
                                               widget.filePath, widget.index);
                                           isRemoved = true;
 
-                                          var outerBox = await Hive.openBox("OuterCount");
+                                          var outerBox =
+                                              await Hive.openBox("OuterCount");
                                           // int count = outerBox  != null ? outerBox.get(widget.value) : isAdded = false;
 
                                           int count = outerBox == null
                                               ? 0
-                                              : outerBox.get(widget.categoryLabel) ==
-                                              null
-                                              ? 0
-                                              : outerBox.get(widget.categoryLabel);
+                                              : outerBox.get(widget
+                                                          .categoryLabel) ==
+                                                      null
+                                                  ? 0
+                                                  : outerBox.get(
+                                                      widget.categoryLabel);
 
-                                          if(isRemoved) {
-                                            outerBox.put(widget.categoryLabel, count-1);
+                                          if (isRemoved) {
+                                            outerBox.put(widget.categoryLabel,
+                                                count - 1);
                                           }
 
                                           Navigator.pop(context);
@@ -208,6 +211,12 @@ class _ImagePreviewState extends State<ImagePreview> {
                         ),
                       ),
                     ),
+                    SizedBox(
+                      width: 15,
+                    ),
+                    Expanded(
+                      child: renameIcon(context, widget.file, widget.index),
+                    ),
                   ],
                 ),
               )
@@ -216,6 +225,124 @@ class _ImagePreviewState extends State<ImagePreview> {
         ),
       ),
     );
+  }
+
+  IconButton renameIcon(BuildContext context, File? file, int position) {
+    return IconButton(
+      onPressed: () {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title:
+                  const Text('Rename!', style: TextStyle(color: Colors.blue)),
+              content: const Text('Do you really want to rename this file!'),
+              actions: [
+                TextField(
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.blue),
+                        borderRadius: BorderRadius.circular(10)),
+                    hintText: 'Enter New Name',
+                    helperText: 'Keep it meaningful',
+                    labelText: 'Rename',
+                    prefixIcon: const Icon(
+                      Icons.drive_file_rename_outline_rounded,
+                      color: Colors.blue,
+                    ),
+                  ),
+                  controller: renameController,
+                ),
+                TextButton(
+                  child: Text('Rename'),
+                  onPressed: () async {
+                    Navigator.pop(context);
+
+                    await changeFileNameOnly(
+                        file!, "${renameController.text}.png");
+                    // records.clear();
+                    var path = file.path;
+                    var lastSeparator =
+                        path.lastIndexOf(Platform.pathSeparator);
+                    var newPath =
+                        "${path.substring(0, lastSeparator + 1)}${renameController.text}.png";
+                    widget.filePath = newPath;
+                    print(
+                        "List Path ${widget.imageFiles.elementAt(position)}\nNewPath $newPath");
+
+                    setState(() {});
+                    /*getApplicationDocumentsDirectory().then((value) {
+                        appDirectory = value;
+                        appDirectory.list().listen((onData) {
+                          if (onData.path.contains('.aac')) records.add(onData.path);
+                        }).onDone(() {
+                          records = records.reversed.toList();
+                          setState(() {});
+                        });
+                      });*/
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      },
+
+      icon: Icon(Icons.drive_file_rename_outline_rounded),
+    );
+  }
+
+  Future<File?> changeFileNameOnly(File file, String newFileName) async {
+    var path = file.path;
+    var lastSeparator = path.lastIndexOf(Platform.pathSeparator);
+    var newPath = path.substring(0, lastSeparator + 1) + newFileName;
+
+    // Check if the new file name already exists
+    var newFile = File(newPath);
+    if (await newFile.exists()) {
+      // Show an alert dialog
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('File Name Already Exists'),
+            content: const Text('The specified file name already exists.'),
+            actions: [
+              // Cancel button
+              TextButton(
+                child: const Text('Cancel'),
+                onPressed: () {
+                  Navigator.of(context).pop(null);
+                },
+              ),
+              // Replace button
+              TextButton(
+                child: const Text('Replace'),
+                onPressed: () {
+                  replaceFile(file, "${renameController.text}.png");
+                  Navigator.of(context).pop(file);
+                  setState(() {});
+                },
+              ),
+            ],
+          );
+        },
+      );
+      return null; // Return null to indicate failure
+    }
+
+    // Rename the file
+    await file.rename(newPath);
+    return newFile;
+  }
+
+  Future<File> replaceFile(File file, String newFileName) async {
+    var path = file.path;
+
+    var lastSeparator = path.lastIndexOf(Platform.pathSeparator);
+    var newPath = path.substring(0, lastSeparator + 1) + newFileName;
+    print("new path: ${newPath}");
+    return await file.rename(newPath);
   }
 
   void _openBottomDialog(BuildContext context, String data, String filePath) {

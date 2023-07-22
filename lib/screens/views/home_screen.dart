@@ -5,12 +5,15 @@ import 'package:document_organiser/screens/document_picker.dart';
 import 'package:document_organiser/screens/views/pdf_preview.dart';
 import 'package:document_organiser/screens/views/categories.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf_thumbnail/pdf_thumbnail.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../boxes/bookmark_box.dart';
 import '../../boxes/boxes.dart';
+import '../../database/bookmark.dart';
 import '../../provider/db_provider.dart';
 import '../../settings/security.dart';
 import '../../settings/settings_screen.dart';
@@ -623,10 +626,14 @@ height: 260,
                                   padding: const EdgeInsets.only(top: 25.0),
                                   child: IconButton(
                                       onPressed: () async {
+
+                                        var bookmarkData = Bookmark(path: pdfFiles[index].path);
+                                        var bookmarkBox = BookmarkBox.getData();
+
                                         if (isFavorites) {
-                                          await box.delete(index);
+                                          await bookmarkBox.delete(pdfFiles[index].path);
                                         } else {
-                                          await box.put(index, file.path);
+                                          bookmarkBox.add(bookmarkData);
                                           const snackBar = SnackBar(
                                             content: Text(
                                               "Added successfully",
@@ -815,284 +822,135 @@ height: 260,
                         Expanded(
                           child: ListView.builder(
                             itemCount: imageFiles.length,
-                            itemBuilder: (BuildContext context, index) {
-                              final isFavorites = box.get(index) != null;
+                            itemBuilder: (BuildContext context, int index) {
                               file = imageFiles[index];
-                              String position = file.path
-                                  .substring(
-                                  70);
+                              String position = file.path;
 
-                              if (searchController.text.isEmpty) {
-                                return GestureDetector(
-                                  onTap: () {
-                                    print("${index}");
-                                    Navigator.pushReplacement(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (context) => ImagePreview(
-                                                  filePath:
-                                                      imageFiles[index].path,
-                                                  file: imageFiles[index],
-                                                  imageFiles: imageFiles,
-                                                  index: index,
-                                                )));
-                                  },
-                                  child: Container(
-                                    color: Colors.grey.shade200,
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 4.0, vertical: 1),
-                                      child: Card(
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(8.0),
-                                          child: Row(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              Container(
-                                                  height: 70,
-                                                  width: 80,
-                                                  child: Image.file(file)),
-                                              // Text(file.path),
-                                              Column(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment
-                                                        .spaceEvenly,
-                                                children: [
-                                                  Padding(
-                                                    padding:
-                                                        const EdgeInsets.only(
-                                                            top: 12.0, left: 6),
-                                                    child: Align(
-                                                      alignment:
-                                                          Alignment.center,
-                                                      child:
-                                                          SingleChildScrollView(
-                                                              scrollDirection:
-                                                                  Axis.horizontal,
-                                                              child: Text(
-                                                                file.path
-                                                                    .substring(
-                                                                        70),
-                                                              )),
-                                                    ),
-                                                  ),
-                                                  isHideCreationDate
-                                                      ? Text("")
-                                                      : FutureBuilder<DateTime>(
-                                                          future:
-                                                              getFileLastModified(
-                                                                  file.path),
-                                                          builder: (BuildContext
-                                                                  context,
-                                                              AsyncSnapshot<
-                                                                      DateTime>
-                                                                  snapshot) {
-                                                            if (snapshot
-                                                                    .connectionState ==
-                                                                ConnectionState
-                                                                    .waiting) {
-                                                              // While waiting for the result, show a progress indicator
-                                                              return CircularProgressIndicator();
-                                                            } else if (snapshot
-                                                                .hasError) {
-                                                              // If an error occurred during the Future execution
-                                                              return Text(
-                                                                  'Error: ${snapshot.error}');
-                                                            } else {
-                                                              // If the Future completed successfully, show the last modified date
-                                                              DateTime
-                                                                  lastModified =
-                                                                  snapshot
-                                                                      .data!;
-                                                              return Text(
-                                                                  "${lastModified.toString().substring(0, lastModified.toString().length - 4)}");
-                                                            }
-                                                          },
-                                                        ),
-                                                ],
-                                              ),
-
-                                              IconButton(
-                                                  onPressed: () async {
-                                                    if (isFavorites) {
-                                                      await box.delete(index);
-                                                    } else {
-                                                      await box.put(
-                                                          index, file.path);
-                                                      const snackBar = SnackBar(
-                                                        content: Text(
-                                                          "Added successfully",
-                                                        ),
-                                                        duration: Duration(
-                                                            seconds: 1),
-                                                      );
-                                                      ScaffoldMessenger.of(
-                                                              context)
-                                                          .showSnackBar(
-                                                              snackBar);
-                                                    }
-                                                  },
-                                                  icon: isFavorites
-                                                      ? Icon(
-                                                          Icons.bookmark,
-                                                          color: Colors.red,
-                                                        )
-                                                      : Icon(
-                                                          Icons.bookmark_border,
-                                                          color: Colors.red,
-                                                        ))
-
-                                              // Text(file.path),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                );
-                              } else if(position.toLowerCase().contains(searchController.text.toLowerCase())) {
-                                return GestureDetector(
-                                  onTap: () {
-                                    print("${index}");
-                                    Navigator.pushReplacement(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (context) => ImagePreview(
-                                              filePath:
-                                              imageFiles[index].path,
-                                              file: imageFiles[index],
-                                              imageFiles: imageFiles,
-                                              index: index,
-                                            )));
-                                  },
-                                  child: Container(
-                                    color: Colors.grey.shade200,
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 4.0, vertical: 1),
-                                      child: Card(
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(8.0),
-                                          child: Row(
-                                            crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                            mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              Container(
-                                                  height: 70,
-                                                  width: 80,
-                                                  child: Image.file(file)),
-                                              // Text(file.path),
-                                              Column(
-                                                mainAxisAlignment:
-                                                MainAxisAlignment
-                                                    .spaceEvenly,
-                                                children: [
-                                                  Padding(
-                                                    padding:
-                                                    const EdgeInsets.only(
-                                                        top: 12.0, left: 6),
-                                                    child: Align(
-                                                      alignment:
-                                                      Alignment.center,
-                                                      child:
-                                                      SingleChildScrollView(
-                                                          scrollDirection:
-                                                          Axis.horizontal,
-                                                          child: Text(
-                                                             position,
-                                                          )),
-                                                    ),
-                                                  ),
-                                                  isHideCreationDate
-                                                      ? Text("")
-                                                      : FutureBuilder<DateTime>(
-                                                    future:
-                                                    getFileLastModified(
-                                                        file.path),
-                                                    builder: (BuildContext
-                                                    context,
-                                                        AsyncSnapshot<
-                                                            DateTime>
-                                                        snapshot) {
-                                                      if (snapshot
-                                                          .connectionState ==
-                                                          ConnectionState
-                                                              .waiting) {
-                                                        // While waiting for the result, show a progress indicator
-                                                        return CircularProgressIndicator();
-                                                      } else if (snapshot
-                                                          .hasError) {
-                                                        // If an error occurred during the Future execution
-                                                        return Text(
-                                                            'Error: ${snapshot.error}');
-                                                      } else {
-                                                        // If the Future completed successfully, show the last modified date
-                                                        DateTime
-                                                        lastModified =
-                                                        snapshot
-                                                            .data!;
-                                                        return Text(
-                                                            "${lastModified.toString().substring(0, lastModified.toString().length - 4)}");
-                                                      }
-                                                    },
-                                                  ),
-                                                ],
-                                              ),
-
-                                              IconButton(
-                                                  onPressed: () async {
-                                                    if (isFavorites) {
-                                                      await box.delete(index);
-                                                    } else {
-                                                      await box.put(
-                                                          index, file.path);
-                                                      const snackBar = SnackBar(
-                                                        content: Text(
-                                                          "Added successfully",
-                                                        ),
-                                                        duration: Duration(
-                                                            seconds: 1),
-                                                      );
-                                                      ScaffoldMessenger.of(
-                                                          context)
-                                                          .showSnackBar(
-                                                          snackBar);
-                                                    }
-                                                  },
-                                                  icon: isFavorites
-                                                      ? Icon(
-                                                    Icons.bookmark,
-                                                    color: Colors.red,
-                                                  )
-                                                      : Icon(
-                                                    Icons.bookmark_border,
-                                                    color: Colors.red,
-                                                  ))
-
-                                              // Text(file.path),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                );
-                              } else{
-                                ListView.builder(
-                                  itemCount: 1,
-                                  itemBuilder: (context, index) {
-                                    return ListTile(
-                                      title: Text("No matches found"),
-                                    );
-                                  },
-
-                                );
+                              if (searchController.text.isNotEmpty &&
+                                  !position.toLowerCase().contains(
+                                      searchController.text.toLowerCase())) {
+                                return SizedBox.shrink();
                               }
+
+                              final isFavorites = box.get(index) != null;
+
+                              return GestureDetector(
+                                onTap: () {
+                                  Navigator.pushReplacement(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => ImagePreview(
+                                        filePath: imageFiles[index].path,
+                                        file: imageFiles[index],
+                                        imageFiles: imageFiles,
+                                        index: index,
+                                      ),
+                                    ),
+                                  );
+                                },
+                                child: Container(
+                                  color: Colors.grey.shade200,
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 4.0, vertical: 1),
+                                    child: Card(
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Row(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Container(
+                                              height: 70,
+                                              width: 80,
+                                              child: Image.file(file),
+                                            ),
+                                            Column(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.spaceEvenly,
+                                              children: [
+                                                Padding(
+                                                  padding:
+                                                      const EdgeInsets.only(
+                                                          top: 12.0, left: 6),
+                                                  child: Align(
+                                                    alignment: Alignment.center,
+                                                    child: Text(
+                                                      file.path.substring(70),
+                                                    ),
+                                                  ),
+                                                ),
+                                                isHideCreationDate
+                                                    ? Text("")
+                                                    : FutureBuilder<DateTime>(
+                                                        future:
+                                                            getFileLastModified(
+                                                                file.path),
+                                                        builder: (BuildContext
+                                                                context,
+                                                            AsyncSnapshot<
+                                                                    DateTime>
+                                                                snapshot) {
+                                                          if (snapshot
+                                                                  .connectionState ==
+                                                              ConnectionState
+                                                                  .waiting) {
+                                                            // While waiting for the result, show a progress indicator
+                                                            return CircularProgressIndicator();
+                                                          } else if (snapshot
+                                                              .hasError) {
+                                                            // If an error occurred during the Future execution
+                                                            return Text(
+                                                                'Error: ${snapshot.error}');
+                                                          } else {
+                                                            // If the Future completed successfully, show the last modified date
+                                                            DateTime
+                                                                lastModified =
+                                                                snapshot.data!;
+                                                            return Text(
+                                                                "${lastModified.toString().substring(0, lastModified.toString().length - 4)}");
+                                                          }
+                                                        },
+                                                      ),
+                                              ],
+                                            ),
+                                            IconButton(
+                                              onPressed: () async {
+                                                if (isFavorites) {
+                                                  await box.delete(index);
+                                                } else {
+                                                  await box.put(
+                                                      index, file.path);
+                                                  const snackBar = SnackBar(
+                                                    content: Text(
+                                                      "Added successfully",
+                                                    ),
+                                                    duration:
+                                                        Duration(seconds: 1),
+                                                  );
+                                                  ScaffoldMessenger.of(context)
+                                                      .showSnackBar(snackBar);
+                                                }
+                                              },
+                                              icon: isFavorites
+                                                  ? Icon(
+                                                      Icons.bookmark,
+                                                      color: Colors.red,
+                                                    )
+                                                  : Icon(
+                                                      Icons.bookmark_border,
+                                                      color: Colors.red,
+                                                    ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              );
                             },
                           ),
                         ),
@@ -1148,10 +1006,3 @@ height: 260,
   }
 }
 
-class CategoriesLength extends CategoriesState {
-  CategoriesState categoriesState = CategoriesState();
-
-  int dataLength() {
-    return categoriesState.data;
-  }
-}

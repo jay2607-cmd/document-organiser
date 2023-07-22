@@ -6,30 +6,27 @@ part of 'bookmark.dart';
 // TypeAdapterGenerator
 // **************************************************************************
 
-class NotesAdapter extends TypeAdapter<Notes> {
+class BookmarkAdapter extends TypeAdapter<Bookmark> {
   @override
-  final int typeId = 0;
+  final int typeId = 1;
 
   @override
-  Notes read(BinaryReader reader) {
+  Bookmark read(BinaryReader reader) {
     final numOfFields = reader.readByte();
     final fields = <int, dynamic>{
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
-    return Notes(
-      imagePath: fields[0] as String,
-      pdfPath: fields[1] as String,
+    return Bookmark(
+      path: fields[0] as String,
     );
   }
 
   @override
-  void write(BinaryWriter writer, Notes obj) {
+  void write(BinaryWriter writer, Bookmark obj) {
     writer
-      ..writeByte(2)
-      ..writeByte(0)
-      ..write(obj.imagePath)
       ..writeByte(1)
-      ..write(obj.pdfPath);
+      ..writeByte(0)
+      ..write(obj.path);
   }
 
   @override
@@ -38,7 +35,7 @@ class NotesAdapter extends TypeAdapter<Notes> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is NotesAdapter &&
+      other is BookmarkAdapter &&
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }

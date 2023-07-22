@@ -1,3 +1,4 @@
+import 'package:document_organiser/database/bookmark.dart';
 import 'package:document_organiser/database/save.dart';
 import 'package:document_organiser/screens/splash.dart';
 import 'package:flutter/material.dart';
@@ -22,9 +23,11 @@ Future<void> main() async {
   var directory = await getApplicationDocumentsDirectory();
   Hive.init(directory.path);
 
-  Hive.registerAdapter(SaveAdapter());
+  Hive.registerAdapter(SaveAdapter(),);
+  Hive.registerAdapter(BookmarkAdapter());
 
   await Hive.openBox<Save>("saveCategories");
+  await Hive.openBox<Bookmark>("bookmark");
 
   await Hive.initFlutter();
   // for bookmark
@@ -41,9 +44,6 @@ Future<void> main() async {
 
   //for question
   await Hive.openBox("Question");
-
-
-
 
 
   SystemChrome.setPreferredOrientations([
