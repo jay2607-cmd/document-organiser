@@ -8,6 +8,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:pdf_thumbnail/pdf_thumbnail.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../database/bookmark.dart';
 import 'home_screen.dart';
 import 'image_preview.dart';
 
@@ -22,6 +23,11 @@ class CategoryInsider extends StatefulWidget {
 class CategoryInsiderState extends State<CategoryInsider> {
   List<File> imageFiles = [];
   List<File> pdfFiles = [];
+
+  TextEditingController searchController = TextEditingController();
+  String search = "";
+
+  Box<Bookmark> bookmarkBox = Hive.box<Bookmark>('bookmark');
 
   bool isAllFilesRemoved = false;
 
@@ -172,7 +178,7 @@ class CategoryInsiderState extends State<CategoryInsider> {
                             ),
                             TextButton(
                               child: Text('OK'),
-                              onPressed: () async{
+                              onPressed: () async {
                                 deleteAllFilesInFolder();
                                 isAllFilesRemoved = true;
 
@@ -181,12 +187,11 @@ class CategoryInsiderState extends State<CategoryInsider> {
 
                                 int count = outerBox == null
                                     ? 0
-                                    : outerBox.get(widget.categoryLabel) ==
-                                    null
-                                    ? 0
-                                    : outerBox.get(widget.categoryLabel);
+                                    : outerBox.get(widget.categoryLabel) == null
+                                        ? 0
+                                        : outerBox.get(widget.categoryLabel);
 
-                                if(isAllFilesRemoved) {
+                                if (isAllFilesRemoved) {
                                   outerBox.put(widget.categoryLabel, 0);
                                 }
                                 Navigator.pop(context);
@@ -344,227 +349,220 @@ class CategoryInsiderState extends State<CategoryInsider> {
   Widget allPDFs() {
     return pdfFiles.isEmpty
         ? Center(child: Text("No ${widget.categoryLabel} Pdf file Chosen"))
-        : ValueListenableBuilder(
-            valueListenable: Hive.box("favorites").listenable(),
-            builder: (BuildContext context, Box<dynamic> box, Widget? child) {
-              return ListView.builder(
-                /*gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  childAspectRatio: 1.5 / 3,
-                  crossAxisSpacing: 20.0,
-                  mainAxisSpacing: 30.0,
-                ),*/
-                itemCount: pdfFiles.length,
-                itemBuilder: (BuildContext context, int index) {
-                  final isFavorites = box.get(index) != null;
-                  file = pdfFiles[index];
-                  return GestureDetector(
-                    onTap: () {
-                      print("${index}");
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => PdfPreview.forDelete(
-                            PdfPath: pdfFiles[index].path,
-                            index: index,
-                            PdfList: pdfFiles,
-                          ),
-                        ),
-                      );
-                    },
-                    child: Card(
-                      child: Stack(
-                        children: [
-                          Container(
-                              height: 120,
-                              width: 80,
-                              child: PdfThumbnail.fromFile(
-                                file.path,
-                                currentPage: 1,
-                                height: 120,
-                                currentPageDecoration: BoxDecoration(
-                                    border:
-                                        Border.all(color: Colors.transparent)),
-                                backgroundColor: Colors.transparent,
-                                onPageClicked: (page) {
-                                  Navigator.pushReplacement(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          PdfPreview.forDelete(
-                                        PdfPath: pdfFiles[index].path,
-                                        index: index,
-                                        PdfList: pdfFiles,
-                                      ),
-                                    ),
-                                  );
-                                },
-                              )
-                              // SfPdfViewer.file(
-                              //   File(file.path),
-                              // ),
-                              ),
-                          Padding(
-                            padding: const EdgeInsets.only(top: 35.0),
-                            child: Align(
-                                alignment: Alignment.topCenter,
-                                child: Text(file.path.substring(70))),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(top: 25.0),
-                            child: Align(
-                              alignment: Alignment.topRight,
-                              child: IconButton(
-                                  onPressed: () async {
-                                    if (isFavorites) {
-                                      await box.delete(index);
-                                    } else {
-                                      await box.put(index, file.path);
-                                      const snackBar = SnackBar(
-                                        content: Text(
-                                          "Added successfully",
-                                        ),
-                                        duration: Duration(seconds: 1),
-                                      );
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(snackBar);
-                                    }
-                                  },
-                                  icon: isFavorites
-                                      ? Icon(
-                                          Icons.bookmark,
-                                          color: Colors.red,
-                                        )
-                                      : Icon(
-                                          Icons.bookmark_border,
-                                          color: Colors.red,
-                                        )),
-                            ),
-                          )
-                        ],
+        : ListView.builder(
+            itemCount: pdfFiles.length,
+            itemBuilder: (BuildContext context, int index) {
+              File file = pdfFiles[index];
+              bool isBookmarked = bookmarkBox.values
+                  .any((bookmark) => bookmark.path == file.path);
+              return GestureDetector(
+                onTap: () {
+                  print("${index}");
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => PdfPreview.forDelete(
+                        PdfPath: pdfFiles[index].path,
+                        index: index,
+                        PdfList: pdfFiles,
                       ),
                     ),
                   );
                 },
+                child: Card(
+                  child: Stack(
+                    children: [
+                      Container(
+                          height: 120,
+                          width: 80,
+                          child: PdfThumbnail.fromFile(
+                            file.path,
+                            currentPage: 1,
+                            height: 120,
+                            currentPageDecoration: BoxDecoration(
+                                border: Border.all(color: Colors.transparent)),
+                            backgroundColor: Colors.transparent,
+                            onPageClicked: (page) {
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => PdfPreview.forDelete(
+                                    PdfPath: pdfFiles[index].path,
+                                    index: index,
+                                    PdfList: pdfFiles,
+                                  ),
+                                ),
+                              );
+                            },
+                          )
+                          // SfPdfViewer.file(
+                          //   File(file.path),
+                          // ),
+                          ),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 35.0),
+                        child: Align(
+                            alignment: Alignment.topCenter,
+                            child: Text(file.path.substring(70))),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 25.0),
+                        child: Align(
+                          alignment: Alignment.topRight,
+                          child: IconButton(
+                            onPressed: () {
+                              if (isBookmarked) {
+                                bookmarkBox.deleteAt(bookmarkBox.values
+                                    .toList()
+                                    .indexWhere((bookmark) =>
+                                        bookmark.path == file.path));
+                              } else {
+                                bookmarkBox.add(Bookmark(path: file.path));
+                              }
+                              setState(
+                                  () {}); // Update the UI by calling setState
+                            },
+                            icon: isBookmarked
+                                ? Icon(
+                                    Icons.bookmark,
+                                    color: Colors.red,
+                                  )
+                                : Icon(
+                                    Icons.bookmark_border,
+                                    color: Colors.red,
+                                  ),
+                          ),
+                        ),
+                      )
+                    ],
+                  ),
+                ),
               );
-            });
+            },
+          );
   }
 
   allImages() {
     return imageFiles.isEmpty
         ? Center(child: Text("No ${widget.categoryLabel} Images Chosen"))
-        : ValueListenableBuilder(
-            valueListenable: Hive.box("favorites").listenable(),
-            builder: (BuildContext context, Box<dynamic> box, Widget? child) {
-              return ListView.builder(
-                /*gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 1,
-            childAspectRatio: 1.5 / 3,
-            // crossAxisSpacing: 20.0,
-            // mainAxisSpacing: 30.0,
-          ),*/
-                itemCount: imageFiles.length,
-                itemBuilder: (BuildContext context, index) {
-                  final isFavorites = box.get(index) != null;
-                  file = imageFiles[index];
+        : Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: TextFormField(
+                  controller: searchController,
+                  decoration: InputDecoration(
+                    hintText: "Search",
+                    border: OutlineInputBorder(),
+                  ),
+                  onChanged: (String? value) {
+                    print(value);
+                    setState(() {
+                      search = value.toString();
+                    });
+                  },
+                ),
+              ),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: imageFiles.length,
+                  itemBuilder: (BuildContext context, int index) {
+                    File file = imageFiles[index];
+                    String position = file.path;
+                    bool isBookmarked = bookmarkBox.values
+                        .any((bookmark) => bookmark.path == file.path);
 
-                  return GestureDetector(
-                    onTap: () {
-                      print("${index}");
-                      Navigator.pushReplacement(
+                    if (searchController.text.isNotEmpty &&
+                        !position
+                            .toLowerCase()
+                            .contains(searchController.text.toLowerCase())) {
+                      return SizedBox.shrink();
+                    }
+
+                    return GestureDetector(
+                      onTap: () {
+                        Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(
-                              builder: (context) =>
-                                  ImagePreview.withCategoryName(
-                                    filePath: imageFiles[index].path,
-                                    file: imageFiles[index],
-                                    imageFiles: imageFiles,
-                                    index: index,
-                                    categoryLabel: "${widget.categoryLabel}",
-                                  )));
-                    },
-                    child: Container(
-                      color: Colors.grey.shade200,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 4.0, vertical: 1),
-                        child: Card(
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Stack(
-                              // crossAxisAlignment: CrossAxisAlignment.center,
-                              // mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: Container(
-                                      height: 70,
-                                      width: 80,
-                                      child: Image.file(file)),
-                                ),
-                                // Text(file.path),
-                                Padding(
-                                  padding:
-                                      const EdgeInsets.only(top: 12.0, left: 6),
-                                  child: Align(
-                                    alignment: Alignment.center,
-                                    child: SingleChildScrollView(
-                                        scrollDirection: Axis.horizontal,
-                                        child: Text(
-                                          file.path.substring(70),
-                                        )),
+                            builder: (context) => ImagePreview(
+                              filePath: imageFiles[index].path,
+                              file: imageFiles[index],
+                              imageFiles: imageFiles,
+                              index: index,
+                            ),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        color: Colors.grey.shade200,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 4.0, vertical: 1),
+                          child: Card(
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Container(
+                                    height: 70,
+                                    width: 80,
+                                    child: Image.file(file),
                                   ),
-                                ),
-
-                                Align(
-                                  alignment: Alignment.topRight,
-                                  child: IconButton(
-                                      onPressed: () async {
-                                        if (isFavorites) {
-                                          await box.delete(index);
-                                        } else {
-                                          await box.put(index, file.path);
-                                          const snackBar = SnackBar(
-                                            content: Text(
-                                              "Added successfully",
-                                            ),
-                                            duration: Duration(seconds: 1),
-                                          );
-                                          ScaffoldMessenger.of(context)
-                                              .showSnackBar(snackBar);
-                                        }
-                                      },
-                                      icon: isFavorites
-                                          ? Icon(
-                                              Icons.bookmark,
-                                              color: Colors.red,
-                                            )
-                                          : Icon(
-                                              Icons.bookmark_border,
-                                              color: Colors.red,
-                                            )),
-                                )
-
-                                // child: Image.file(file),
-                                // Container(
-                                //   height: 260,
-                                //   width: 250,
-                                //   child: SfPdfViewer.file(
-                                //     File(file.path),
-                                //   ),
-                                // ),
-
-                                // Text(file.path),
-                              ],
+                                  Column(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceEvenly,
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.only(
+                                            top: 12.0, left: 6),
+                                        child: Align(
+                                          alignment: Alignment.center,
+                                          child: Text(
+                                            file.path.substring(70),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  IconButton(
+                                    onPressed: () {
+                                      if (isBookmarked) {
+                                        bookmarkBox.deleteAt(bookmarkBox.values
+                                            .toList()
+                                            .indexWhere((bookmark) =>
+                                                bookmark.path == file.path));
+                                      } else {
+                                        bookmarkBox
+                                            .add(Bookmark(path: file.path));
+                                      }
+                                      setState(
+                                          () {}); // Update the UI by calling setState
+                                    },
+                                    icon: isBookmarked
+                                        ? Icon(
+                                            Icons.bookmark,
+                                            color: Colors.red,
+                                          )
+                                        : Icon(
+                                            Icons.bookmark_border,
+                                            color: Colors.red,
+                                          ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                  );
-                },
-              );
-            });
+                    );
+                  },
+                ),
+              ),
+            ],
+          );
   }
 
   Future<bool> _willPopCallback() {

@@ -25,6 +25,8 @@ class ImagePreview extends StatefulWidget {
     required this.index,
   });
 
+
+
   ImagePreview.withCategoryName(
       {super.key,
       required this.filePath,

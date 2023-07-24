@@ -134,7 +134,6 @@ class CategoriesState extends State<Categories> {
 
         data = Save(name: "Business", image: "");
         box = Boxes.getData();
-
         box.add(data);
 
         data = Save(name: "Ticket", image: "");

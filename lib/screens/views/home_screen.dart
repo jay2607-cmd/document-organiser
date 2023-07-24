@@ -10,12 +10,12 @@ import 'package:path_provider/path_provider.dart';
 import 'package:pdf_thumbnail/pdf_thumbnail.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../boxes/bookmark_box.dart';
 import '../../boxes/boxes.dart';
 import '../../database/bookmark.dart';
 import '../../provider/db_provider.dart';
 import '../../settings/security.dart';
 import '../../settings/settings_screen.dart';
+import 'bookmark_screen.dart';
 import 'image_preview.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -32,14 +32,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   bool isImageAdded = false;
   bool isPdfAdded = false;
 
-  late File file;
-
   bool isHideCreationDate = false;
 
   TextEditingController searchController = TextEditingController();
   String search = "";
-
-  var isFavorites = false;
 
   Box<Bookmark> bookmarkBox = Hive.box<Bookmark>('bookmark');
 
@@ -117,6 +113,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     print("NewImagefileLength ${imageFiles.length}");
 
     if (document == "images") {
+      // shift index
       // shift index
       print("shift index");
     }
@@ -214,6 +211,15 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   icon: isGridView!.getBool('isGrid') == true
                       ? Icon(Icons.list)
                       : Icon(Icons.grid_view_sharp)),
+              IconButton(
+                onPressed: () {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const BookmarkScreen()));
+                },
+                icon: Icon(Icons.bookmark_added),
+              ),
               PopupMenuButton<String>(
                 icon: Icon(Icons.more_vert),
                 onSelected: (value) {
@@ -315,202 +321,197 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   Widget allPDFs() {
     return pdfFiles.isEmpty
         ? Center(child: Text("No Pdf file Chosen"))
-        : ValueListenableBuilder(
-            valueListenable: Hive.box("favorites").listenable(),
-            builder: (BuildContext context, Box<dynamic> box, Widget? child) {
-              return isGridView!.getBool('isGrid') == true
-                  ? GridView.builder(
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        childAspectRatio: 1.5 / 3,
-                      ),
-                      itemCount: pdfFiles.length,
-                      itemBuilder: (BuildContext context, int index) {
-                        File file = pdfFiles[index];
-                        bool isBookmarked = bookmarkBox.values
-                            .any((bookmark) => bookmark.path == file.path);
+        : isGridView!.getBool('isGrid') == true
+            ? GridView.builder(
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  childAspectRatio: 1.5 / 3,
+                ),
+                itemCount: pdfFiles.length,
+                itemBuilder: (BuildContext context, int index) {
+                  File file = pdfFiles[index];
+                  bool isBookmarked = bookmarkBox.values
+                      .any((bookmark) => bookmark.path == file.path);
 
-                        return GestureDetector(
-                          onTap: () {
-                            print("${index}");
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => PdfPreview.forDelete(
-                                  PdfPath: pdfFiles[index].path,
-                                  index: index,
-                                  PdfList: pdfFiles,
-                                ),
+                  return GestureDetector(
+                    onTap: () {
+                      print("${index}");
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => PdfPreview.forDelete(
+                            PdfPath: pdfFiles[index].path,
+                            index: index,
+                            PdfList: pdfFiles,
+                          ),
+                        ),
+                      );
+                    },
+                    child: Card(
+                      child: Column(
+                        children: [
+                          Container(
+                            height: 193,
+                            width: 200,
+                            child: PdfThumbnail.fromFile(
+                              file.path,
+                              currentPage: 1,
+                              height: 193,
+                              currentPageDecoration: BoxDecoration(
+                                border:
+                                    Border.all(color: Colors.transparent),
                               ),
-                            );
-                          },
-                          child: Card(
-                            child: Column(
-                              children: [
-                                Container(
-                                  height: 193,
-                                  width: 200,
-                                  child: PdfThumbnail.fromFile(
-                                    file.path,
-                                    currentPage: 1,
-                                    height: 193,
-                                    currentPageDecoration: BoxDecoration(
-                                      border:
-                                          Border.all(color: Colors.transparent),
+                              backgroundColor: Colors.transparent,
+                              onPageClicked: (page) {
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        PdfPreview.forDelete(
+                                      PdfPath: pdfFiles[index].path,
+                                      index: index,
+                                      PdfList: pdfFiles,
                                     ),
-                                    backgroundColor: Colors.transparent,
-                                    onPageClicked: (page) {
-                                      Navigator.pushReplacement(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              PdfPreview.forDelete(
-                                            PdfPath: pdfFiles[index].path,
-                                            index: index,
-                                            PdfList: pdfFiles,
-                                          ),
-                                        ),
-                                      );
-                                    },
                                   ),
-                                ),
-                                Column(
-                                  children: [
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          vertical: 20.0),
-                                      child: Text(file.path.substring(70)),
-                                    ),
-                                    /* Add the last modified date here if needed */
-                                  ],
-                                ),
-                                IconButton(
-                                  onPressed: () {
-                                    if (isBookmarked) {
-                                      bookmarkBox.deleteAt(bookmarkBox.values
-                                          .toList()
-                                          .indexWhere((bookmark) =>
-                                              bookmark.path == file.path));
-                                    } else {
-                                      bookmarkBox
-                                          .add(Bookmark(path: file.path));
-                                    }
-                                    setState(
-                                        () {}); // Update the UI by calling setState
-                                  },
-                                  icon: isBookmarked
-                                      ? Icon(
-                                          Icons.bookmark,
-                                          color: Colors.red,
-                                        )
-                                      : Icon(
-                                          Icons.bookmark_border,
-                                          color: Colors.red,
-                                        ),
-                                ),
-                              ],
+                                );
+                              },
                             ),
                           ),
-                        );
-                      },
-                    )
-                  : ListView.builder(
-                      itemCount: pdfFiles.length,
-                      itemBuilder: (BuildContext context, int index) {
-                        File file = pdfFiles[index];
-                        bool isBookmarked = bookmarkBox.values
-                            .any((bookmark) => bookmark.path == file.path);
-
-                        return GestureDetector(
-                          onTap: () {
-                            print("${index}");
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => PdfPreview.forDelete(
-                                  PdfPath: pdfFiles[index].path,
-                                  index: index,
-                                  PdfList: pdfFiles,
-                                ),
+                          Column(
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    vertical: 20.0),
+                                child: Text(file.path.substring(70)),
                               ),
-                            );
-                          },
-                          child: Card(
-                            child: Stack(
-                              children: [
-                                Align(
-                                  alignment: Alignment.center,
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 20.0),
-                                    child: Text(file.path.substring(70)),
-                                  ),
-                                ),
-                                Align(
-                                  alignment: Alignment.bottomLeft,
-                                  child: Container(
-                                    height: 100,
-                                    width: 100,
-                                    child: PdfThumbnail.fromFile(
-                                      file.path,
-                                      currentPage: 1,
-                                      height: 100,
-                                      currentPageDecoration: BoxDecoration(
-                                        border:
-                                            Border.all(color: Colors.transparent),
-                                      ),
-                                      backgroundColor: Colors.transparent,
-                                      onPageClicked: (page) {
-                                        Navigator.pushReplacement(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) =>
-                                                PdfPreview.forDelete(
-                                              PdfPath: pdfFiles[index].path,
-                                              index: index,
-                                              PdfList: pdfFiles,
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                  ),
-                                ),
-                                Align(
-                                  alignment: Alignment.centerRight,
-                                  child: IconButton(
-                                    onPressed: () {
-                                      if (isBookmarked) {
-                                        bookmarkBox.deleteAt(bookmarkBox.values
-                                            .toList()
-                                            .indexWhere((bookmark) =>
+                              /* Add the last modified date here if needed */
+                            ],
+                          ),
+                          IconButton(
+                            onPressed: () {
+                              if (isBookmarked) {
+                                bookmarkBox.deleteAt(bookmarkBox.values
+                                    .toList()
+                                    .indexWhere((bookmark) =>
                                         bookmark.path == file.path));
-                                      } else {
-                                        bookmarkBox
-                                            .add(Bookmark(path: file.path));
-                                      }
-                                      setState(
-                                              () {}); // Update the UI by calling setState
-                                    },
-                                    icon: isBookmarked
-                                        ? Icon(
+                              } else {
+                                bookmarkBox
+                                    .add(Bookmark(path: file.path));
+                              }
+                              setState(
+                                  () {}); // Update the UI by calling setState
+                            },
+                            icon: isBookmarked
+                                ? Icon(
+                                    Icons.bookmark,
+                                    color: Colors.red,
+                                  )
+                                : Icon(
+                                    Icons.bookmark_border,
+                                    color: Colors.red,
+                                  ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              )
+            : ListView.builder(
+                itemCount: pdfFiles.length,
+                itemBuilder: (BuildContext context, int index) {
+                  File file = pdfFiles[index];
+                  bool isBookmarked = bookmarkBox.values
+                      .any((bookmark) => bookmark.path == file.path);
+
+                  return GestureDetector(
+                    onTap: () {
+                      print("${index}");
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => PdfPreview.forDelete(
+                            PdfPath: pdfFiles[index].path,
+                            index: index,
+                            PdfList: pdfFiles,
+                          ),
+                        ),
+                      );
+                    },
+                    child: Card(
+                      child: Stack(
+                        children: [
+                          Align(
+                            alignment: Alignment.center,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 20.0),
+                              child: Text(file.path.substring(70)),
+                            ),
+                          ),
+                          Align(
+                            alignment: Alignment.bottomLeft,
+                            child: Container(
+                              height: 100,
+                              width: 100,
+                              child: PdfThumbnail.fromFile(
+                                file.path,
+                                currentPage: 1,
+                                height: 100,
+                                currentPageDecoration: BoxDecoration(
+                                  border: Border.all(
+                                      color: Colors.transparent),
+                                ),
+                                backgroundColor: Colors.transparent,
+                                onPageClicked: (page) {
+                                  Navigator.pushReplacement(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          PdfPreview.forDelete(
+                                        PdfPath: pdfFiles[index].path,
+                                        index: index,
+                                        PdfList: pdfFiles,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: IconButton(
+                              onPressed: () {
+                                if (isBookmarked) {
+                                  bookmarkBox.deleteAt(bookmarkBox.values
+                                      .toList()
+                                      .indexWhere((bookmark) =>
+                                          bookmark.path == file.path));
+                                } else {
+                                  bookmarkBox
+                                      .add(Bookmark(path: file.path));
+                                }
+                                setState(
+                                    () {}); // Update the UI by calling setState
+                              },
+                              icon: isBookmarked
+                                  ? Icon(
                                       Icons.bookmark,
                                       color: Colors.red,
                                     )
-                                        : Icon(
+                                  : Icon(
                                       Icons.bookmark_border,
                                       color: Colors.red,
                                     ),
-                                  ),
-                                ),
-
-                              ],
                             ),
                           ),
-                        );
-                      },
-                    );
-            });
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              );
   }
 
   allImages() {
@@ -633,16 +634,16 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                           child: ListView.builder(
                             itemCount: imageFiles.length,
                             itemBuilder: (BuildContext context, int index) {
-                              file = imageFiles[index];
+                              File file = imageFiles[index];
                               String position = file.path;
+                              bool isBookmarked = bookmarkBox.values.any(
+                                  (bookmark) => bookmark.path == file.path);
 
                               if (searchController.text.isNotEmpty &&
                                   !position.toLowerCase().contains(
                                       searchController.text.toLowerCase())) {
                                 return SizedBox.shrink();
                               }
-
-                              final isFavorites = box.get(index) != null;
 
                               return GestureDetector(
                                 onTap: () {
@@ -727,24 +728,24 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                               ],
                                             ),
                                             IconButton(
-                                              onPressed: () async {
-                                                if (isFavorites) {
-                                                  await box.delete(index);
+                                              onPressed: () {
+                                                if (isBookmarked) {
+                                                  bookmarkBox.deleteAt(
+                                                      bookmarkBox.values
+                                                          .toList()
+                                                          .indexWhere(
+                                                              (bookmark) =>
+                                                                  bookmark
+                                                                      .path ==
+                                                                  file.path));
                                                 } else {
-                                                  await box.put(
-                                                      index, file.path);
-                                                  const snackBar = SnackBar(
-                                                    content: Text(
-                                                      "Added successfully",
-                                                    ),
-                                                    duration:
-                                                        Duration(seconds: 1),
-                                                  );
-                                                  ScaffoldMessenger.of(context)
-                                                      .showSnackBar(snackBar);
+                                                  bookmarkBox.add(Bookmark(
+                                                      path: file.path));
                                                 }
+                                                setState(
+                                                    () {}); // Update the UI by calling setState
                                               },
-                                              icon: isFavorites
+                                              icon: isBookmarked
                                                   ? Icon(
                                                       Icons.bookmark,
                                                       color: Colors.red,
