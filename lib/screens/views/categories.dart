@@ -16,8 +16,7 @@ class Categories extends StatefulWidget {
       });
 
   int totalLength = 0;
-  Map? identifier;
-  Categories.withLength(int this.totalLength, Map this.identifier);
+  Categories.withLength(int this.totalLength);
 
   @override
   State<Categories> createState() => CategoriesState();
@@ -251,7 +250,6 @@ class CategoriesState extends State<Categories> {
         builder: (context, box, _) {
           data = box.values.toList().cast<Save>();
           // dataLegnth.length =  data.length;
-          print("INdetifie length ${widget.identifier!.length}");
           return GridView.builder(
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 3,

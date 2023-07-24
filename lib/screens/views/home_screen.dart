@@ -5,7 +5,6 @@ import 'package:document_organiser/screens/document_picker.dart';
 import 'package:document_organiser/screens/views/pdf_preview.dart';
 import 'package:document_organiser/screens/views/categories.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf_thumbnail/pdf_thumbnail.dart';
@@ -29,15 +28,9 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   List<File> imageFiles = [];
   List<File> pdfFiles = [];
-  int base = -1;
-  int check = -2;
 
   bool isImageAdded = false;
   bool isPdfAdded = false;
-
-  var identifier = {};
-
-  List<String> labels = ['Images', 'PDFs'];
 
   late File file;
 
@@ -45,6 +38,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   TextEditingController searchController = TextEditingController();
   String search = "";
+
+  var isFavorites = false;
+
+  Box<Bookmark> bookmarkBox = Hive.box<Bookmark>('bookmark');
 
   @override
   void initState() {
@@ -93,7 +90,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   Future<void> loadImages() async {
-    base = 0;
     // final directory = await getApplicationDocumentsDirectory();
     final directory = await getExternalStorageDirectory();
     print(directory);
@@ -101,18 +97,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     final pngFiles = files?.whereType<File>().where((file) {
       String filename = file.path.toLowerCase().split('files/').last;
       print("New Data List ==>> ${filename.split("/")[0]}");
-      if (identifier.containsKey(filename.split("/")[0])) {
-        identifier[filename.split("/")[0]] =
-            (identifier[filename.split("/")[0]]) + 1;
-      } else {
-        identifier[filename.split("/")[0]] = 1;
-      }
 
       final extension = file.path.toLowerCase().split('.').last;
       return extension == 'png';
     }).toList();
     setState(() {
-      check = 0;
       imageFiles = pngFiles!;
     });
   }
@@ -136,7 +125,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   Future<void> loadPDF() async {
-    base = 0;
     // final directory = await getApplicationDocumentsDirectory();
     final directory = await getExternalStorageDirectory();
     print(directory);
@@ -144,17 +132,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     final PDFFiles = files?.whereType<File>().where((file) {
       String filename = file.path.toLowerCase().split('files/').last;
       print("New Data List ==>> ${filename.split("/")[0]}");
-      if (identifier.containsKey(filename.split("/")[0])) {
-        identifier[filename.split("/")[0]] =
-            (identifier[filename.split("/")[0]]) + 1;
-      } else {
-        identifier[filename.split("/")[0]] = 1;
-      }
       final extension = file.path.toLowerCase().split('.').last;
       return extension == 'pdf';
     }).toList();
     setState(() {
-      check = 0;
       pdfFiles = PDFFiles!;
     });
   }
@@ -299,8 +280,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             children: [
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 16),
-                child: Categories.withLength(
-                    imageFiles.length + pdfFiles.length, identifier),
+                child:
+                    Categories.withLength(imageFiles.length + pdfFiles.length),
               ),
               Padding(
                 padding:
@@ -318,80 +299,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       ),
     );
   }
-
-  /*Widget allPDFs() {
-    return pdfFiles.isEmpty
-        ? Center(child: Text("No Pdf file Chosen"))
-        : GridView.builder(
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              childAspectRatio: 1.5 / 3,
-              crossAxisSpacing: 20.0,
-              mainAxisSpacing: 30.0,
-            ),
-            itemCount: pdfFiles.length,
-            itemBuilder: (BuildContext context, int index) {
-              file = pdfFiles[index];
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // Container(height: 250,width: 250,child: Image.file(file)),
-                  // Text(file.path),
-
-                  // child: Image.file(file),
-                  Container(
-height: 260,
-                      width: 250,
-                      child: GestureDetector(
-                          onTap: () {
-                            print("${index}");
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => PdfPreview.forDelete(
-                                  PdfPath: pdfFiles[index].path,
-                                  index: index,
-                                  PdfList: pdfFiles,
-                                ),
-                              ),
-                            );
-                          },
-                          child: PdfThumbnail.fromFile(
-                            file.path,
-                            currentPage: 1,
-                            height: 260,
-                            backgroundColor: Colors.transparent,
-                            onPageClicked: (page) {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => PdfPreview.forDelete(
-                                    PdfPath: pdfFiles[index].path,
-                                    index: index,
-                                    PdfList: pdfFiles,
-                                  ),
-                                ),
-                              );
-                            },
-                          ))
-                      // SfPdfViewer.file(
-                      //   File(file.path),
-                      // ),
-                      ),
-
-
-                  Padding(
-                    padding: const EdgeInsets.only(left: 16.0),
-                    child: Text(file.path.substring(70)),
-                  ),
-
-                  // Text(file.path),
-                ],
-              );
-            },
-          );
-  }*/
 
   Future<DateTime> getFileLastModified(String filepath) async {
     File file = File(filepath);
@@ -416,13 +323,13 @@ height: 260,
                       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 2,
                         childAspectRatio: 1.5 / 3,
-                        // crossAxisSpacing: 20.0,
-                        // mainAxisSpacing: 30.0,
                       ),
                       itemCount: pdfFiles.length,
                       itemBuilder: (BuildContext context, int index) {
-                        final isFavorites = box.get(index) != null;
-                        file = pdfFiles[index];
+                        File file = pdfFiles[index];
+                        bool isBookmarked = bookmarkBox.values
+                            .any((bookmark) => bookmark.path == file.path);
+
                         return GestureDetector(
                           onTap: () {
                             print("${index}");
@@ -441,34 +348,32 @@ height: 260,
                             child: Column(
                               children: [
                                 Container(
+                                  height: 193,
+                                  width: 200,
+                                  child: PdfThumbnail.fromFile(
+                                    file.path,
+                                    currentPage: 1,
                                     height: 193,
-                                    width: 200,
-                                    child: PdfThumbnail.fromFile(
-                                      file.path,
-                                      currentPage: 1,
-                                      height: 193,
-                                      currentPageDecoration: BoxDecoration(
-                                          border: Border.all(
-                                              color: Colors.transparent)),
-                                      backgroundColor: Colors.transparent,
-                                      onPageClicked: (page) {
-                                        Navigator.pushReplacement(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) =>
-                                                PdfPreview.forDelete(
-                                              PdfPath: pdfFiles[index].path,
-                                              index: index,
-                                              PdfList: pdfFiles,
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                    )
-                                    // SfPdfViewer.file(
-                                    //   File(file.path),
-                                    // ),
+                                    currentPageDecoration: BoxDecoration(
+                                      border:
+                                          Border.all(color: Colors.transparent),
                                     ),
+                                    backgroundColor: Colors.transparent,
+                                    onPageClicked: (page) {
+                                      Navigator.pushReplacement(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              PdfPreview.forDelete(
+                                            PdfPath: pdfFiles[index].path,
+                                            index: index,
+                                            PdfList: pdfFiles,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
                                 Column(
                                   children: [
                                     Padding(
@@ -476,59 +381,33 @@ height: 260,
                                           vertical: 20.0),
                                       child: Text(file.path.substring(70)),
                                     ),
-                                    isHideCreationDate
-                                        ? Text("")
-                                        : FutureBuilder<DateTime>(
-                                            future:
-                                                getFileLastModified(file.path),
-                                            builder: (BuildContext context,
-                                                AsyncSnapshot<DateTime>
-                                                    snapshot) {
-                                              if (snapshot.connectionState ==
-                                                  ConnectionState.waiting) {
-                                                // While waiting for the result, show a progress indicator
-                                                return CircularProgressIndicator();
-                                              } else if (snapshot.hasError) {
-                                                // If an error occurred during the Future execution
-                                                return Text(
-                                                    'Error: ${snapshot.error}');
-                                              } else {
-                                                // If the Future completed successfully, show the last modified date
-                                                DateTime lastModified =
-                                                    snapshot.data!;
-                                                return Text(
-                                                    "${lastModified.toString().substring(0, lastModified.toString().length - 4)}");
-                                              }
-                                            },
-                                          ),
+                                    /* Add the last modified date here if needed */
                                   ],
                                 ),
                                 IconButton(
-                                    onPressed: () async {
-                                      if (isFavorites) {
-                                        await box.delete(file.path);
-                                      } else {
-                                        await box.put(file.path, true);
-                                        var snackBar = SnackBar(
-                                          backgroundColor: Colors.blue.shade200,
-                                          content: Text(
-                                            "Added successfully",
-                                          ),
-                                          duration: Duration(seconds: 1),
-                                        );
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(snackBar);
-                                      }
-                                    },
-                                    icon: isFavorites
-                                        ? Icon(
-                                            Icons.bookmark,
-                                            color: Colors.red,
-                                          )
-                                        : Icon(
-                                            Icons.bookmark_border,
-                                            color: Colors.red,
-                                          ))
+                                  onPressed: () {
+                                    if (isBookmarked) {
+                                      bookmarkBox.deleteAt(bookmarkBox.values
+                                          .toList()
+                                          .indexWhere((bookmark) =>
+                                              bookmark.path == file.path));
+                                    } else {
+                                      bookmarkBox
+                                          .add(Bookmark(path: file.path));
+                                    }
+                                    setState(
+                                        () {}); // Update the UI by calling setState
+                                  },
+                                  icon: isBookmarked
+                                      ? Icon(
+                                          Icons.bookmark,
+                                          color: Colors.red,
+                                        )
+                                      : Icon(
+                                          Icons.bookmark_border,
+                                          color: Colors.red,
+                                        ),
+                                ),
                               ],
                             ),
                           ),
@@ -538,8 +417,10 @@ height: 260,
                   : ListView.builder(
                       itemCount: pdfFiles.length,
                       itemBuilder: (BuildContext context, int index) {
-                        final isFavorites = box.get(index) != null;
-                        file = pdfFiles[index];
+                        File file = pdfFiles[index];
+                        bool isBookmarked = bookmarkBox.values
+                            .any((bookmark) => bookmark.path == file.path);
+
                         return GestureDetector(
                           onTap: () {
                             print("${index}");
@@ -555,19 +436,29 @@ height: 260,
                             );
                           },
                           child: Card(
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.start,
+                            child: Stack(
                               children: [
-                                Container(
-                                    height: 120,
-                                    width: 80,
+                                Align(
+                                  alignment: Alignment.center,
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 20.0),
+                                    child: Text(file.path.substring(70)),
+                                  ),
+                                ),
+                                Align(
+                                  alignment: Alignment.bottomLeft,
+                                  child: Container(
+                                    height: 100,
+                                    width: 100,
                                     child: PdfThumbnail.fromFile(
                                       file.path,
                                       currentPage: 1,
-                                      height: 120,
+                                      height: 100,
                                       currentPageDecoration: BoxDecoration(
-                                          border: Border.all(
-                                              color: Colors.transparent)),
+                                        border:
+                                            Border.all(color: Colors.transparent),
+                                      ),
                                       backgroundColor: Colors.transparent,
                                       onPageClicked: (page) {
                                         Navigator.pushReplacement(
@@ -582,78 +473,37 @@ height: 260,
                                           ),
                                         );
                                       },
-                                    )
-                                    // SfPdfViewer.file(
-                                    //   File(file.path),
-                                    // ),
                                     ),
-                                Column(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: [
-                                    Padding(
-                                      padding: const EdgeInsets.only(top: 35.0),
-                                      child: Text(file.path.substring(70)),
-                                    ),
-                                    isHideCreationDate
-                                        ? Text("")
-                                        : FutureBuilder<DateTime>(
-                                            future:
-                                                getFileLastModified(file.path),
-                                            builder: (BuildContext context,
-                                                AsyncSnapshot<DateTime>
-                                                    snapshot) {
-                                              if (snapshot.connectionState ==
-                                                  ConnectionState.waiting) {
-                                                // While waiting for the result, show a progress indicator
-                                                return CircularProgressIndicator();
-                                              } else if (snapshot.hasError) {
-                                                // If an error occurred during the Future execution
-                                                return Text(
-                                                    'Error: ${snapshot.error}');
-                                              } else {
-                                                // If the Future completed successfully, show the last modified date
-                                                DateTime lastModified =
-                                                    snapshot.data!;
-
-                                                return Text(
-                                                    "${lastModified.toString().substring(0, lastModified.toString().length - 4)}");
-                                              }
-                                            },
-                                          ),
-                                  ],
+                                  ),
                                 ),
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 25.0),
+                                Align(
+                                  alignment: Alignment.centerRight,
                                   child: IconButton(
-                                      onPressed: () async {
+                                    onPressed: () {
+                                      if (isBookmarked) {
+                                        bookmarkBox.deleteAt(bookmarkBox.values
+                                            .toList()
+                                            .indexWhere((bookmark) =>
+                                        bookmark.path == file.path));
+                                      } else {
+                                        bookmarkBox
+                                            .add(Bookmark(path: file.path));
+                                      }
+                                      setState(
+                                              () {}); // Update the UI by calling setState
+                                    },
+                                    icon: isBookmarked
+                                        ? Icon(
+                                      Icons.bookmark,
+                                      color: Colors.red,
+                                    )
+                                        : Icon(
+                                      Icons.bookmark_border,
+                                      color: Colors.red,
+                                    ),
+                                  ),
+                                ),
 
-                                        var bookmarkData = Bookmark(path: pdfFiles[index].path);
-                                        var bookmarkBox = BookmarkBox.getData();
-
-                                        if (isFavorites) {
-                                          await bookmarkBox.delete(pdfFiles[index].path);
-                                        } else {
-                                          bookmarkBox.add(bookmarkData);
-                                          const snackBar = SnackBar(
-                                            content: Text(
-                                              "Added successfully",
-                                            ),
-                                            duration: Duration(seconds: 1),
-                                          );
-                                          ScaffoldMessenger.of(context)
-                                              .showSnackBar(snackBar);
-                                        }
-                                      },
-                                      icon: isFavorites
-                                          ? Icon(
-                                              Icons.bookmark,
-                                              color: Colors.red,
-                                            )
-                                          : Icon(
-                                              Icons.bookmark_border,
-                                              color: Colors.red,
-                                            )),
-                                )
                               ],
                             ),
                           ),
@@ -674,26 +524,27 @@ height: 260,
                       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 2,
                         childAspectRatio: 1.5 / 3,
-                        // crossAxisSpacing: 20.0,
-                        // mainAxisSpacing: 10.0,
                       ),
                       itemCount: imageFiles.length,
                       itemBuilder: (BuildContext context, index) {
-                        final isFavorites = box.get(file.path) != null;
-                        file = imageFiles[index];
+                        File file = imageFiles[index];
+                        bool isBookmarked = bookmarkBox.values
+                            .any((bookmark) => bookmark.path == file.path);
 
                         return GestureDetector(
                           onTap: () {
                             print("${index}");
                             Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => ImagePreview(
-                                          filePath: imageFiles[index].path,
-                                          file: imageFiles[index],
-                                          imageFiles: imageFiles,
-                                          index: index,
-                                        )));
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ImagePreview(
+                                  filePath: imageFiles[index].path,
+                                  file: imageFiles[index],
+                                  imageFiles: imageFiles,
+                                  index: index,
+                                ),
+                              ),
+                            );
                           },
                           child: Container(
                             color: Colors.grey.shade200,
@@ -704,94 +555,53 @@ height: 260,
                                 child: Padding(
                                   padding: const EdgeInsets.all(8.0),
                                   child: Column(
-                                    // crossAxisAlignment: CrossAxisAlignment.center,
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       Container(
-                                          height: 200,
-                                          width: 150,
-                                          child: Image.file(file)),
-                                      // Text(file.path),
+                                        height: 200,
+                                        width: 150,
+                                        child: Image.file(file),
+                                      ),
                                       Column(
                                         children: [
                                           Padding(
                                             padding: const EdgeInsets.only(
                                                 top: 12.0, left: 6),
                                             child: SingleChildScrollView(
-                                                scrollDirection:
-                                                    Axis.horizontal,
-                                                child: Text(
-                                                  file.path.substring(70),
-                                                )),
+                                              scrollDirection: Axis.horizontal,
+                                              child:
+                                                  Text(file.path.substring(70)),
+                                            ),
                                           ),
-                                          isHideCreationDate
-                                              ? Text("")
-                                              : FutureBuilder<DateTime>(
-                                                  future: getFileLastModified(
-                                                      file.path),
-                                                  builder: (BuildContext
-                                                          context,
-                                                      AsyncSnapshot<DateTime>
-                                                          snapshot) {
-                                                    if (snapshot
-                                                            .connectionState ==
-                                                        ConnectionState
-                                                            .waiting) {
-                                                      // While waiting for the result, show a progress indicator
-                                                      return CircularProgressIndicator();
-                                                    } else if (snapshot
-                                                        .hasError) {
-                                                      // If an error occurred during the Future execution
-                                                      return Text(
-                                                          'Error: ${snapshot.error}');
-                                                    } else {
-                                                      // If the Future completed successfully, show the last modified date
-                                                      DateTime lastModified =
-                                                          snapshot.data!;
-                                                      return Text(
-                                                          "${lastModified.toString().substring(0, lastModified.toString().length - 4)}");
-                                                    }
-                                                  },
-                                                ),
+                                          // Add the last modified date here if needed
                                         ],
                                       ),
-
                                       IconButton(
-                                          onPressed: () async {
-                                            if (isFavorites) {
-                                              await box.delete(index);
-                                            } else {
-                                              await box.put(file.path, true);
-                                              const snackBar = SnackBar(
-                                                content: Text(
-                                                  "Added successfully",
-                                                ),
-                                                duration: Duration(seconds: 1),
-                                              );
-                                              ScaffoldMessenger.of(context)
-                                                  .showSnackBar(snackBar);
-                                            }
-                                          },
-                                          icon: isFavorites
-                                              ? Icon(
-                                                  Icons.bookmark,
-                                                  color: Colors.red,
-                                                )
-                                              : Icon(
-                                                  Icons.bookmark_border,
-                                                  color: Colors.red,
-                                                ))
-
-                                      // child: Image.file(file),
-                                      // Container(
-                                      //   height: 260,
-                                      //   width: 250,
-                                      //   child: SfPdfViewer.file(
-                                      //     File(file.path),
-                                      //   ),
-                                      // ),
-
-                                      // Text(file.path),
+                                        onPressed: () {
+                                          if (isBookmarked) {
+                                            bookmarkBox.deleteAt(bookmarkBox
+                                                .values
+                                                .toList()
+                                                .indexWhere((bookmark) =>
+                                                    bookmark.path ==
+                                                    file.path));
+                                          } else {
+                                            bookmarkBox
+                                                .add(Bookmark(path: file.path));
+                                          }
+                                          setState(
+                                              () {}); // Update the UI by calling setState
+                                        },
+                                        icon: isBookmarked
+                                            ? Icon(
+                                                Icons.bookmark,
+                                                color: Colors.red,
+                                              )
+                                            : Icon(
+                                                Icons.bookmark_border,
+                                                color: Colors.red,
+                                              ),
+                                      ),
                                     ],
                                   ),
                                 ),
@@ -1005,4 +815,3 @@ height: 260,
         });
   }
 }
-

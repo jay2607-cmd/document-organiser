@@ -71,7 +71,7 @@ class _SettingScreenState extends State<SettingScreen> {
                   }),
             ),
 
-            ListTile(
+            /*ListTile(
               title: Text("Hide Empty Categories"),
               trailing: Switch(
                   value: isEmptyCategories,
@@ -81,7 +81,7 @@ class _SettingScreenState extends State<SettingScreen> {
                     });
                     DbProvider().saveEmptyCategories(value);
                   }),
-            ),
+            ),*/
 
           ],
         ));

@@ -22,6 +22,7 @@ Future<void> main() async {
 
   var directory = await getApplicationDocumentsDirectory();
   Hive.init(directory.path);
+  await Hive.initFlutter();
 
   Hive.registerAdapter(SaveAdapter(),);
   Hive.registerAdapter(BookmarkAdapter());
@@ -29,7 +30,6 @@ Future<void> main() async {
   await Hive.openBox<Save>("saveCategories");
   await Hive.openBox<Bookmark>("bookmark");
 
-  await Hive.initFlutter();
   // for bookmark
   await Hive.openBox("favorites");
 
