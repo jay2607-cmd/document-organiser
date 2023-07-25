@@ -5,17 +5,31 @@ import 'package:hive/hive.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 
+import 'bookmark_screen.dart';
+import 'category_insider.dart';
 import 'home_screen.dart';
 
 class PdfPreview extends StatefulWidget {
   late String PdfPath;
   late List PdfList;
   late int index;
+  String fromWhere = "";
+  String category = "";
+
   PdfPreview.forDelete(
       {super.key,
       required this.PdfPath,
       required this.PdfList,
-      required this.index});
+      required this.index,
+      required this.fromWhere});
+
+  PdfPreview.withCategory(
+      {super.key,
+      required this.PdfPath,
+      required this.PdfList,
+      required this.index,
+      required this.fromWhere,
+      required this.category});
 
   // PdfPreview.forShare({super.key, required this.PdfPath});
 
@@ -125,20 +139,29 @@ class _PdfPreviewState extends State<PdfPreview> {
         });
         // widget.imageFiles.removeAt(index);
 
-        Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (context) => HomeScreen()));
+        _willPopCallback();
         print('$filePath deleted successfully');
       }
     } catch (e) {
       print('Error while deleting file: $e');
-      Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (context) => HomeScreen()));
+      _willPopCallback();
     }
   }
 
   Future<bool> _willPopCallback() {
-    Navigator.pushReplacement(
-        context, MaterialPageRoute(builder: (context) => HomeScreen()));
+    if (widget.fromWhere == "home") {
+      Navigator.pushReplacement(
+          context, MaterialPageRoute(builder: (context) => HomeScreen()));
+    } else if (widget.fromWhere == "categoryInsider") {
+      Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+              builder: (context) => CategoryInsider(
+                  categoryLabel: widget.category, isFromCategories: false)));
+    } else if (widget.fromWhere == "bookmark") {
+      Navigator.pushReplacement(
+          context, MaterialPageRoute(builder: (context) => BookmarkScreen()));
+    }
     return Future.value(true);
   }
 

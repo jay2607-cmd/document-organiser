@@ -11,12 +11,9 @@ import 'category_insider.dart';
 
 class Categories extends StatefulWidget {
   // final bool isLoggedIn;
-  Categories({super.key
-      // required this.isLoggedIn,
-      });
+   bool isFromCategories;
 
-  int totalLength = 0;
-  Categories.withLength(int this.totalLength);
+  Categories({super.key, required this.isFromCategories});
 
   @override
   State<Categories> createState() => CategoriesState();
@@ -115,7 +112,6 @@ class CategoriesState extends State<Categories> {
       prefs.setBool("isFirst", true);
     } else {
       if (prefs.getBool("isFirst")! == false) {
-
         var data = Save(name: "Invoice", image: '');
         var box = Boxes.getData();
         box.add(data);
@@ -175,32 +171,6 @@ class CategoriesState extends State<Categories> {
     // print("isHideEmptyCategories $isEmptyCategories");
   }
 
-  /*hideEmptyCategories() {
-    if (isHideEmptyCategories2) {
-      // print("isHideEmptyCategories $isHideEmptyCategories");
-      // get the category length
-
-      for (int i = 0; i < categoryList.length; i++) {
-        outerCountBox == null
-            ? print("Got Null Value")
-            : outerCountBox.get(categoryList[i]) == null ||
-            outerCountBox.get(categoryList[i]) == 0
-            ? print("delete those categories ")
-            : "${outerCountBox.get(categoryList[i]).toString()} ";
-      }
-
-      // check zero length category
-      // delete those categories
-    }
-  }*/
-
-  var categoryMap = new Map();
-  /*var categoryMap =  {
-  outerCountBox = await Hive.openBox("OuterCount");
-
-  "Invoice" : outerCountBox.get(categoryList[1]),
-    "Personal" : ,
-  };*/
   int count = 0;
   loadCountFromDatabase() async {
     // open the database for count
@@ -225,17 +195,6 @@ class CategoriesState extends State<Categories> {
     categoryMap[categoryList[12]] = outerCountBox.get(categoryList[12]);*/
 
     print(categoryList[0]);
-    // for(int i = 0 ; i < categoryList.length ; i++)  {
-    //   await outerCountBox.put(categoryList[i],0);
-    //
-    // }
-
-    /* // count = await outerCountBox.get("Invoice");
-    // print("count >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ${count}");
-    //
-    // print(
-    //     "outerCountBox.get(Invoice).toString() ${outerCountBox.get("Invoice").toString()}");*/
-
     setState(() {});
   }
 
@@ -257,11 +216,14 @@ class CategoriesState extends State<Categories> {
             itemBuilder: (context, index) {
               return GestureDetector(
                 onTap: () {
+                 widget.isFromCategories = true;
+
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
                       builder: (context) => CategoryInsider(
                         categoryLabel: data[index].name,
+                        isFromCategories: widget.isFromCategories,
                       ),
                     ),
                   );

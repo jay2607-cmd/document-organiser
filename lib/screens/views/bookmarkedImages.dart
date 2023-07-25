@@ -17,6 +17,7 @@ class _BookmarkedImagesState extends State<BookmarkedImages> {
   @override
   Widget build(BuildContext context) {
     List<Bookmark> bookmarkedImages = bookmarkBox.values.toList();
+    List<File> imageFiles = [];
 
     return bookmarkedImages.isEmpty
         ? Center(
@@ -33,12 +34,19 @@ class _BookmarkedImagesState extends State<BookmarkedImages> {
               return bookmark.path.split("/").last.contains(".png")
                   ? GestureDetector(
                       onTap: () {
+                        File file = File(filePath);
+                        imageFiles.add(file);
+
                         print("${index}");
                         Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => ImagePreview.withInfo(
-                              updatedPath: bookmarkedImages[index].path,
+                            builder: (context) => ImagePreview(
+                              index: index,
+                              file: file,
+                              filePath: filePath,
+                              imageFiles: imageFiles,
+                              fromWhere: "bookmark",
                             ),
                           ),
                         );

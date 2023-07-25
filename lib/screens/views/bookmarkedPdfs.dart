@@ -6,6 +6,8 @@ import 'package:pdf_thumbnail/pdf_thumbnail.dart';
 import '../../database/bookmark.dart';
 
 class BookmarkedPDFs extends StatefulWidget {
+  const BookmarkedPDFs({super.key});
+
   @override
   State<BookmarkedPDFs> createState() => _BookmarkedPDFsState();
 }
@@ -37,6 +39,7 @@ class _BookmarkedPDFsState extends State<BookmarkedPDFs> {
                       PdfPath: bookmark.path,
                       index: index,
                       PdfList: bookmarkedImages,
+                      fromWhere: "bookmark",
                     ),
                   ),
                 );},
@@ -62,6 +65,7 @@ class _BookmarkedPDFsState extends State<BookmarkedPDFs> {
                                         PdfPath: bookmark.path,
                                         index: index,
                                         PdfList: bookmarkedImages,
+                                        fromWhere: "bookmark",
                                       ),
                                     ),
                                   );

@@ -4,6 +4,7 @@ import 'dart:async';
 
 import 'package:document_organiser/screens/views/forget_screen.dart';
 import 'package:document_organiser/screens/views/home_screen.dart';
+import 'package:document_organiser/screens/views/layout_screen.dart';
 import 'package:document_organiser/screens/views/questions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screen_lock/flutter_screen_lock.dart';
@@ -27,7 +28,7 @@ class SplashScreenState extends State<SplashScreen> {
         () => DbProvider().getAuthState().then((value) async {
               if (value == false) {
                 Navigator.pushReplacement(context,
-                    MaterialPageRoute(builder: (context) => HomeScreen()));
+                    MaterialPageRoute(builder: (context) => LayoutScreen()));
               } else {
                 print("show authentication");
 
@@ -79,7 +80,7 @@ class SplashScreenState extends State<SplashScreen> {
                     // Navigator.of(context)
                     //     .pushReplacement(MaterialPageRoute(builder: (context) => const HomeScreen()));
                     Navigator.pushReplacement(context,
-                        MaterialPageRoute(builder: (context) => HomeScreen()));
+                        MaterialPageRoute(builder: (context) => LayoutScreen()));
                   },
                   canCancel: false,
                   footer: TextButton(

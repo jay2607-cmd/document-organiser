@@ -13,9 +13,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../boxes/boxes.dart';
 import '../../database/bookmark.dart';
 import '../../provider/db_provider.dart';
-import '../../settings/security.dart';
-import '../../settings/settings_screen.dart';
-import 'bookmark_screen.dart';
 import 'image_preview.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -38,6 +35,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   String search = "";
 
   Box<Bookmark> bookmarkBox = Hive.box<Bookmark>('bookmark');
+
+  String fromWhere = "home";
 
   @override
   void initState() {
@@ -143,164 +142,155 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     sortFilesByLastModified(pdfFiles, "pdfs");
     var box = Boxes.getData();
     // print("identifier size-->> ${identifier.length}");
-    return WillPopScope(
-      onWillPop: () => showExitPopup(context),
-      child: DefaultTabController(
-        length: 3,
-        child: Scaffold(
-          appBar: AppBar(
-            title: Text("MyDocs"),
-            bottom: TabBar(
-              tabs: [
-                Tab(
-                  child: RichText(
-                    text: TextSpan(children: [
-                      TextSpan(
-                        text: "Categories",
-                      ),
-                      TextSpan(
-                          text: " (${box.length})",
-                          style: TextStyle(fontWeight: FontWeight.bold)),
-                    ]),
-                  ),
+    return DefaultTabController(
+      length: 3,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text("MyDocs"),
+          bottom: TabBar(
+            tabs: [
+              Tab(
+                child: RichText(
+                  text: TextSpan(children: [
+                    TextSpan(
+                      text: "Categories",
+                    ),
+                    TextSpan(
+                        text: " (${box.length})",
+                        style: TextStyle(fontWeight: FontWeight.bold)),
+                  ]),
                 ),
-                Tab(
-                  child: RichText(
-                    text: TextSpan(children: [
-                      TextSpan(
-                        text: "All Images",
-                      ),
-                      TextSpan(
-                          text: " (${imageFiles.length})",
-                          style: TextStyle(fontWeight: FontWeight.bold)),
-                    ]),
-                  ),
+              ),
+              Tab(
+                child: RichText(
+                  text: TextSpan(children: [
+                    TextSpan(
+                      text: "All Images",
+                    ),
+                    TextSpan(
+                        text: " (${imageFiles.length})",
+                        style: TextStyle(fontWeight: FontWeight.bold)),
+                  ]),
                 ),
-                Tab(
-                  child: RichText(
-                    text: TextSpan(children: [
-                      TextSpan(
-                        text: "All PDFs",
-                      ),
-                      TextSpan(
-                          text: " (${pdfFiles.length})",
-                          style: TextStyle(fontWeight: FontWeight.bold)),
-                    ]),
-                  ),
+              ),
+              Tab(
+                child: RichText(
+                  text: TextSpan(children: [
+                    TextSpan(
+                      text: "All PDFs",
+                    ),
+                    TextSpan(
+                        text: " (${pdfFiles.length})",
+                        style: TextStyle(fontWeight: FontWeight.bold)),
+                  ]),
                 ),
-              ],
-            ),
-            actions: [
-              IconButton(
-                  onPressed: () {
-                    Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => DocumentPicker("Invoice")));
-                  },
-                  icon: const Icon(Icons.add)),
-              IconButton(
-                  onPressed: () async {
-                    if (isGridView!.getBool('isGrid') == true) {
-                      await isGridView!.setBool('isGrid', false);
-                    } else {
-                      await isGridView!.setBool('isGrid', true);
-                    }
-                    setState(() {});
-                  },
-                  icon: isGridView!.getBool('isGrid') == true
-                      ? Icon(Icons.list)
-                      : Icon(Icons.grid_view_sharp)),
-              IconButton(
+              ),
+            ],
+          ),
+          actions: [
+            IconButton(
                 onPressed: () {
-                  Navigator.push(
+                  Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => const BookmarkScreen()));
+                          builder: (context) => DocumentPicker(
+                                "Invoice",
+                                isFromCategories: false,
+                              )));
                 },
-                icon: Icon(Icons.bookmark_added),
-              ),
-              PopupMenuButton<String>(
-                icon: Icon(Icons.more_vert),
-                onSelected: (value) {
-                  // Handle menu item selection
-                  if (value == 'security') {
-                    // Perform action for menu item 1
-
-                    // push to the account class
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (context) => Security()));
-                  } else if (value == 'settings') {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => SettingScreen()));
+                icon: const Icon(Icons.add)),
+            IconButton(
+                onPressed: () async {
+                  if (isGridView!.getBool('isGrid') == true) {
+                    await isGridView!.setBool('isGrid', false);
+                  } else {
+                    await isGridView!.setBool('isGrid', true);
                   }
+                  setState(() {});
                 },
-                itemBuilder: (context) => [
-                  PopupMenuItem(
-                    value: 'security',
-                    child: Text('Security'),
-                  ),
-                  PopupMenuItem(
-                    value: 'settings',
-                    child: Text('Settings'),
-                  ),
-                ],
-              )
+                icon: isGridView!.getBool('isGrid') == true
+                    ? Icon(Icons.list)
+                    : Icon(Icons.grid_view_sharp)),
 
-              /*IconButton(
-                  icon: Icon(Icons.delete),
-                  onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return AlertDialog(
-                          title: const Text('Warning!',
-                              style: TextStyle(color: Colors.red)),
-                          content: const Text(
-                              'Do you really want to delete all images!'),
-                          actions: [
-                            TextButton(
-                              child: const Text('Cancel'),
-                              onPressed: () {
-                                Navigator.pop(context);
-                              },
-                            ),
-                            TextButton(
-                              child: Text('OK'),
-                              onPressed: () {
-                                deleteAllFilesInFolder();
-                                Navigator.pop(context);
-                              },
-                            ),
-                          ],
-                        );
-                      },
-                    );
-                    setState(() {});
-                  }),*/
-            ],
-          ),
-          body: TabBarView(
-            children: [
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 16),
-                child:
-                    Categories.withLength(imageFiles.length + pdfFiles.length),
+            /*  PopupMenuButton<String>(
+              icon: Icon(Icons.more_vert),
+              onSelected: (value) {
+                // Handle menu item selection
+                if (value == 'security') {
+                  // Perform action for menu item 1
+
+                  // push to the account class
+                  Navigator.push(context,
+                      MaterialPageRoute(builder: (context) => Security()));
+                } else if (value == 'settings') {
+                  Navigator.push(context,
+                      MaterialPageRoute(builder: (context) => SettingScreen()));
+                }
+              },
+              itemBuilder: (context) => [
+                PopupMenuItem(
+                  value: 'security',
+                  child: Text('Security'),
+                ),
+                PopupMenuItem(
+                  value: 'settings',
+                  child: Text('Settings'),
+                ),
+              ],
+            )*/
+
+            /*IconButton(
+                icon: Icon(Icons.delete),
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: const Text('Warning!',
+                            style: TextStyle(color: Colors.red)),
+                        content: const Text(
+                            'Do you really want to delete all images!'),
+                        actions: [
+                          TextButton(
+                            child: const Text('Cancel'),
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                          ),
+                          TextButton(
+                            child: Text('OK'),
+                            onPressed: () {
+                              deleteAllFilesInFolder();
+                              Navigator.pop(context);
+                            },
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                  setState(() {});
+                }),*/
+          ],
+        ),
+        body: TabBarView(
+          children: [
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 16),
+              child: Categories(
+                isFromCategories: false,
               ),
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8.0, vertical: 16),
-                child: allImages(),
-              ),
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16),
-                child: allPDFs(),
-              ),
-            ],
-          ),
+            ),
+            Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 8.0, vertical: 16),
+              child: allImages(),
+            ),
+            Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16),
+              child: allPDFs(),
+            ),
+          ],
         ),
       ),
     );
@@ -343,6 +333,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                             PdfPath: pdfFiles[index].path,
                             index: index,
                             PdfList: pdfFiles,
+                            fromWhere: "home",
                           ),
                         ),
                       );
@@ -358,19 +349,18 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                               currentPage: 1,
                               height: 193,
                               currentPageDecoration: BoxDecoration(
-                                border:
-                                    Border.all(color: Colors.transparent),
+                                border: Border.all(color: Colors.transparent),
                               ),
                               backgroundColor: Colors.transparent,
                               onPageClicked: (page) {
                                 Navigator.pushReplacement(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) =>
-                                        PdfPreview.forDelete(
+                                    builder: (context) => PdfPreview.forDelete(
                                       PdfPath: pdfFiles[index].path,
                                       index: index,
                                       PdfList: pdfFiles,
+                                      fromWhere: "home",
                                     ),
                                   ),
                                 );
@@ -380,8 +370,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                           Column(
                             children: [
                               Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    vertical: 20.0),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 20.0),
                                 child: Text(file.path.substring(70)),
                               ),
                               /* Add the last modified date here if needed */
@@ -395,8 +385,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                     .indexWhere((bookmark) =>
                                         bookmark.path == file.path));
                               } else {
-                                bookmarkBox
-                                    .add(Bookmark(path: file.path));
+                                bookmarkBox.add(Bookmark(path: file.path));
                               }
                               setState(
                                   () {}); // Update the UI by calling setState
@@ -434,6 +423,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                             PdfPath: pdfFiles[index].path,
                             index: index,
                             PdfList: pdfFiles,
+                            fromWhere: "home",
                           ),
                         ),
                       );
@@ -444,8 +434,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                           Align(
                             alignment: Alignment.center,
                             child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  vertical: 20.0),
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 20.0),
                               child: Text(file.path.substring(70)),
                             ),
                           ),
@@ -459,8 +449,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                 currentPage: 1,
                                 height: 100,
                                 currentPageDecoration: BoxDecoration(
-                                  border: Border.all(
-                                      color: Colors.transparent),
+                                  border: Border.all(color: Colors.transparent),
                                 ),
                                 backgroundColor: Colors.transparent,
                                 onPageClicked: (page) {
@@ -472,6 +461,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                         PdfPath: pdfFiles[index].path,
                                         index: index,
                                         PdfList: pdfFiles,
+                                            fromWhere: "home",
                                       ),
                                     ),
                                   );
@@ -489,8 +479,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                       .indexWhere((bookmark) =>
                                           bookmark.path == file.path));
                                 } else {
-                                  bookmarkBox
-                                      .add(Bookmark(path: file.path));
+                                  bookmarkBox.add(Bookmark(path: file.path));
                                 }
                                 setState(
                                     () {}); // Update the UI by calling setState
@@ -534,6 +523,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
                         return GestureDetector(
                           onTap: () {
+
                             print("${index}");
                             Navigator.pushReplacement(
                               context,
@@ -543,6 +533,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                   file: imageFiles[index],
                                   imageFiles: imageFiles,
                                   index: index,
+                                  fromWhere: fromWhere,
                                 ),
                               ),
                             );
@@ -655,6 +646,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                         file: imageFiles[index],
                                         imageFiles: imageFiles,
                                         index: index,
+                                        fromWhere: fromWhere,
                                       ),
                                     ),
                                   );

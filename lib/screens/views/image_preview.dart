@@ -2,12 +2,15 @@
 
 import 'dart:io';
 
+import 'package:document_organiser/screens/views/bookmark_screen.dart';
+import 'package:document_organiser/screens/views/category_insider.dart';
 import 'package:document_organiser/screens/views/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../../database/bookmark.dart';
 import '../../provider/db_provider.dart';
 
 class ImagePreview extends StatefulWidget {
@@ -15,17 +18,16 @@ class ImagePreview extends StatefulWidget {
   int index = 0;
   String filePath = "";
   File? file;
-  String categoryLabel = "";
+  String fromWhere = "";
+  String categoryName = "";
 
-  ImagePreview({
-    super.key,
-    required this.filePath,
-    required this.file,
-    required this.imageFiles,
-    required this.index,
-  });
-
-
+  ImagePreview(
+      {super.key,
+      required this.filePath,
+      required this.file,
+      required this.imageFiles,
+      required this.index,
+      required this.fromWhere});
 
   ImagePreview.withCategoryName(
       {super.key,
@@ -33,10 +35,8 @@ class ImagePreview extends StatefulWidget {
       required this.file,
       required this.imageFiles,
       required this.index,
-      required this.categoryLabel});
-
-  String updatedPath = "";
-  ImagePreview.withInfo({super.key, required this.updatedPath});
+      required this.fromWhere,
+      required this.categoryName});
 
   @override
   State<ImagePreview> createState() => _ImagePreviewState();
@@ -50,6 +50,8 @@ class _ImagePreviewState extends State<ImagePreview> {
 
   TextEditingController renameController = TextEditingController();
 
+  Box<Bookmark> bookmarkBox = Hive.box<Bookmark>('bookmark');
+  late bool isBookmarked;
   @override
   void initState() {
     super.initState();
@@ -59,6 +61,10 @@ class _ImagePreviewState extends State<ImagePreview> {
         isNotesSharingEnabled = value;
       });
     });
+    isBookmarked =
+        bookmarkBox.values.any((bookmark) => bookmark.path == widget.filePath);
+
+    print("widget.filePath ${widget.filePath}");
   }
 
   var notesBox;
@@ -150,32 +156,12 @@ class _ImagePreviewState extends State<ImagePreview> {
                                     TextButton(
                                       child: Text('OK'),
                                       onPressed: () {
-                                        setState(() async {
                                           deleteFile(
                                               widget.filePath, widget.index);
                                           isRemoved = true;
-
-                                          var outerBox =
-                                              await Hive.openBox("OuterCount");
-                                          // int count = outerBox  != null ? outerBox.get(widget.value) : isAdded = false;
-
-                                          int count = outerBox == null
-                                              ? 0
-                                              : outerBox.get(widget
-                                                          .categoryLabel) ==
-                                                      null
-                                                  ? 0
-                                                  : outerBox.get(
-                                                      widget.categoryLabel);
-
-                                          if (isRemoved) {
-                                            outerBox.put(widget.categoryLabel,
-                                                count - 1);
-                                          }
-
                                           Navigator.pop(context);
                                           setState(() {});
-                                        });
+
                                       },
                                     ),
                                   ],
@@ -258,8 +244,6 @@ class _ImagePreviewState extends State<ImagePreview> {
                 TextButton(
                   child: Text('Rename'),
                   onPressed: () async {
-                    Navigator.pop(context);
-
                     await changeFileNameOnly(
                         file!, "${renameController.text}.png");
                     // records.clear();
@@ -269,19 +253,23 @@ class _ImagePreviewState extends State<ImagePreview> {
                     var newPath =
                         "${path.substring(0, lastSeparator + 1)}${renameController.text}.png";
                     widget.filePath = newPath;
-                    print(
-                        "List Path ${widget.imageFiles.elementAt(position)}\nNewPath $newPath");
 
+                    // check the bookmark feature
+
+                    print("isBookmarked $isBookmarked");
+
+                    if (isBookmarked) {
+                      bookmarkBox.deleteAt(bookmarkBox.values
+                          .toList()
+                          .indexWhere(
+                              (bookmark) => bookmark.path == file.path));
+
+                      bookmarkBox.add(Bookmark(path: newPath));
+                      print("bookmark added ${renameController.text}");
+                    }
+
+                    Navigator.pop(context);
                     setState(() {});
-                    /*getApplicationDocumentsDirectory().then((value) {
-                        appDirectory = value;
-                        appDirectory.list().listen((onData) {
-                          if (onData.path.contains('.aac')) records.add(onData.path);
-                        }).onDone(() {
-                          records = records.reversed.toList();
-                          setState(() {});
-                        });
-                      });*/
                   },
                 ),
               ],
@@ -289,7 +277,6 @@ class _ImagePreviewState extends State<ImagePreview> {
           },
         );
       },
-
       icon: Icon(Icons.drive_file_rename_outline_rounded),
     );
   }
@@ -322,7 +309,9 @@ class _ImagePreviewState extends State<ImagePreview> {
                 child: const Text('Replace'),
                 onPressed: () {
                   replaceFile(file, "${renameController.text}.png");
-                  Navigator.of(context).pop(file);
+                  _willPopCallback();
+                  Navigator.pop(context);
+
                   setState(() {});
                 },
               ),
@@ -455,20 +444,30 @@ class _ImagePreviewState extends State<ImagePreview> {
               .removeAt(index); // Remove the deleted file from the list
         });
 
-        Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (context) => HomeScreen()));
+        _willPopCallback();
         print('$filePath deleted successfully');
       }
     } catch (e) {
       print('Error while deleting file: $e');
-      Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (context) => HomeScreen()));
+      _willPopCallback();
     }
   }
 
   Future<bool> _willPopCallback() {
-    Navigator.pushReplacement(
-        context, MaterialPageRoute(builder: (context) => HomeScreen()));
+    if (widget.fromWhere == "home") {
+      Navigator.pushReplacement(
+          context, MaterialPageRoute(builder: (context) => HomeScreen()));
+    } else if (widget.fromWhere == "categoryInsider") {
+      Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+              builder: (context) => CategoryInsider(
+                  categoryLabel: widget.categoryName,
+                  isFromCategories: false)));
+    } else if (widget.fromWhere == "bookmark") {
+      Navigator.pushReplacement(
+          context, MaterialPageRoute(builder: (context) => BookmarkScreen()));
+    }
     return Future.value(true);
   }
 }

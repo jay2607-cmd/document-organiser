@@ -1,4 +1,4 @@
-import 'package:document_organiser/screens/views/home_screen.dart';
+import 'package:document_organiser/screens/views/layout_screen.dart';
 import 'package:document_organiser/utils/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screen_lock/flutter_screen_lock.dart';
@@ -84,7 +84,7 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
                             Navigator.pushReplacement(
                                 context,
                                 MaterialPageRoute(
-                                    builder: (context) => HomeScreen()));
+                                    builder: (context) => LayoutScreen()));
                           },
                           footer: TextButton(
                             onPressed: () {

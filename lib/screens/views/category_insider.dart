@@ -14,7 +14,10 @@ import 'image_preview.dart';
 
 class CategoryInsider extends StatefulWidget {
   final String categoryLabel;
-  const CategoryInsider({super.key, required this.categoryLabel});
+  final bool isFromCategories;
+
+  const CategoryInsider(
+      {super.key, required this.categoryLabel, required this.isFromCategories});
 
   @override
   State<CategoryInsider> createState() => CategoryInsiderState();
@@ -151,11 +154,23 @@ class CategoryInsiderState extends State<CategoryInsider> {
             actions: [
               IconButton(
                   onPressed: () {
-                    Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) =>
-                                DocumentPicker(widget.categoryLabel)));
+                    if (widget.isFromCategories) {
+                      Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => DocumentPicker(
+                                    widget.categoryLabel,
+                                    isFromCategories: true,
+                                  )));
+                    } else {
+                      Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => DocumentPicker(
+                                    widget.categoryLabel,
+                                    isFromCategories: true,
+                                  )));
+                    }
                   },
                   icon: Icon(Icons.add)),
               IconButton(
@@ -224,128 +239,6 @@ class CategoryInsiderState extends State<CategoryInsider> {
     );
   }
 
-  /*Widget allPDFs() {
-    return pdfFiles.isEmpty
-        ? Center(child: Text("No ${widget.categoryLabel} Pdf file Chosen"))
-        : GridView.builder(
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              childAspectRatio: 1.5 / 3,
-              crossAxisSpacing: 20.0,
-              mainAxisSpacing: 30.0,
-            ),
-            itemCount: pdfFiles.length,
-            itemBuilder: (BuildContext context, int index) {
-              file = pdfFiles[index];
-              return GestureDetector(
-                onTap: () {
-                  print("${index}");
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => PdfPreview.forDelete(
-                                PdfPath: pdfFiles[index].path,
-                                index: index,
-                                PdfList: pdfFiles,
-                              )));
-                },
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    // Container(height: 250,width: 250,child: Image.file(file)),
-                    // Text(file.path),
-
-                    // child: Image.file(file),
-                    Container(
-                        height: 260,
-                        width: 250,
-                        child: PdfThumbnail.fromFile(
-                          file.path,
-                          scrollToCurrentPage: true,
-                          currentPage: 1,
-                          height: 260,
-                          backgroundColor: Colors.transparent,
-                          onPageClicked: (page) {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => PdfPreview.forDelete(
-                                  PdfPath: pdfFiles[index].path,
-                                  index: index,
-                                  PdfList: pdfFiles,
-                                ),
-                              ),
-                            );
-                          },
-                        )),
-                    Text(file.path.substring(70, 81)),
-                    Text(file.path.substring(81, 89)),
-
-                    // Text(file.path),
-                  ],
-                ),
-              );
-            },
-          );
-  }*/
-
-  /*Widget allImages() {
-    return imageFiles.isEmpty
-        ? Center(child: Text("No ${widget.categoryLabel} Images Chosen"))
-        : GridView.builder(
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              childAspectRatio: 1.5 / 3,
-              crossAxisSpacing: 20.0,
-              mainAxisSpacing: 30.0,
-            ),
-            itemCount: imageFiles.length,
-            itemBuilder: (BuildContext context, int index) {
-              file = imageFiles[index];
-              return GestureDetector(
-                onTap: () {
-                  print("${index}");
-                  Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => ImagePreview(
-                                filePath: imageFiles[index].path,
-                                file: imageFiles[index],
-                                imageFiles: imageFiles,
-                                index: index,
-                              )));
-                },
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(height: 250, width: 250, child: Image.file(imageFiles[index])),
-                    // Text(file.path),
-                    Text(file.path.substring(70, 81)),
-                    Text(file.path.substring(81, 89)),
-
-                    SizedBox(
-                      height: 30,
-                    ),
-
-                    // child: Image.file(file),
-                    // Container(
-                    //   height: 260,
-                    //   width: 250,
-                    //   child: SfPdfViewer.file(
-                    //     File(file.path),
-                    //   ),
-                    // ),
-
-                    // Text(file.path),
-                  ],
-                ),
-              );
-            },
-          );
-  }*/
-
   Widget allPDFs() {
     return pdfFiles.isEmpty
         ? Center(child: Text("No ${widget.categoryLabel} Pdf file Chosen"))
@@ -361,10 +254,11 @@ class CategoryInsiderState extends State<CategoryInsider> {
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => PdfPreview.forDelete(
+                      builder: (context) => PdfPreview.withCategory(
                         PdfPath: pdfFiles[index].path,
                         index: index,
                         PdfList: pdfFiles,
+                        fromWhere: "categoryInsider", category: widget.categoryLabel,
                       ),
                     ),
                   );
@@ -390,6 +284,7 @@ class CategoryInsiderState extends State<CategoryInsider> {
                                     PdfPath: pdfFiles[index].path,
                                     index: index,
                                     PdfList: pdfFiles,
+                                    fromWhere: "categoryInsider",
                                   ),
                                 ),
                               );
@@ -484,15 +379,18 @@ class CategoryInsiderState extends State<CategoryInsider> {
                         Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => ImagePreview(
+                            builder: (context) => ImagePreview.withCategoryName(
                               filePath: imageFiles[index].path,
                               file: imageFiles[index],
                               imageFiles: imageFiles,
                               index: index,
+                              fromWhere: "categoryInsider",
+                              categoryName: widget.categoryLabel,
                             ),
                           ),
                         );
                       },
+
                       child: Container(
                         color: Colors.grey.shade200,
                         child: Padding(

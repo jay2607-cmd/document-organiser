@@ -19,17 +19,15 @@ enum AppState { free, picked, cropped }
 
 class DocumentPicker extends StatefulWidget {
   String value = "";
+  final bool isFromCategories;
 
-  DocumentPicker(String this.value);
-
-  DocumentPicker.nothing();
+  DocumentPicker(String this.value, {required this.isFromCategories});
 
   @override
   State<DocumentPicker> createState() => DocumentPickerState(value: value);
 }
 
 class DocumentPickerState extends State<DocumentPicker> {
-
   bool isAdded = false;
 
   var notesBox;
@@ -65,7 +63,6 @@ class DocumentPickerState extends State<DocumentPicker> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     state = AppState.free;
     DbProvider().getEmptyCategories().then((value) {
@@ -76,7 +73,6 @@ class DocumentPickerState extends State<DocumentPicker> {
 
     print("isEmptyCategories $isEmptyCategories");
   }
-
 
   Future getImageFromCamera() async {
     final pickerCameraImage =
@@ -168,13 +164,12 @@ class DocumentPickerState extends State<DocumentPicker> {
 
                   int count = outerBox == null
                       ? 0
-                      : outerBox.get(widget.value) ==
-                      null
-                      ? 0
-                      : outerBox.get(widget.value);
+                      : outerBox.get(widget.value) == null
+                          ? 0
+                          : outerBox.get(widget.value);
 
-                  if(isAdded) {
-                    outerBox.put(widget.value, count+1);
+                  if (isAdded) {
+                    outerBox.put(widget.value, count + 1);
                   }
 
                   showInSnackBar("Image saved as a Document");
@@ -218,7 +213,6 @@ class DocumentPickerState extends State<DocumentPicker> {
                     } else {
                       print("Not added in database");
                     }
-
                   } else if (isPDFPreview) {
                     final PDFPath = await File(
                             '${directory!.path}/${DateTime.now().millisecondsSinceEpoch}.pdf')
@@ -240,7 +234,6 @@ class DocumentPickerState extends State<DocumentPicker> {
                     }
                   }
                   if (isImagePreview || isPDFPreview) {
-
                     isAdded = true;
 
                     var outerBox = await Hive.openBox("OuterCount");
@@ -248,19 +241,16 @@ class DocumentPickerState extends State<DocumentPicker> {
 
                     int count = outerBox == null
                         ? 0
-                        : outerBox.get(widget.value) ==
-                        null
-                        ? 0
-                        : outerBox.get(widget.value);
+                        : outerBox.get(widget.value) == null
+                            ? 0
+                            : outerBox.get(widget.value);
 
-                    if(isAdded) {
-                      outerBox.put(widget.value, count+1);
+                    if (isAdded) {
+                      outerBox.put(widget.value, count + 1);
                     }
 
                     _willPopCallback();
                     showInSnackBar("Image Saved");
-
-
                   } else {
                     showInSnackBar("Please select a file to save");
                   }
@@ -460,8 +450,13 @@ class DocumentPickerState extends State<DocumentPicker> {
   }*/
 
   Future<bool> _willPopCallback() {
-    Navigator.pushReplacement(
-        context, MaterialPageRoute(builder: (builder) => HomeScreen()));
+    if (widget.isFromCategories) {
+      Navigator.pushReplacement(
+          context, MaterialPageRoute(builder: (builder) => CategoryInsider(categoryLabel: widget.value, isFromCategories: false)));
+    }
+    else{
+      Navigator.pushReplacement(
+          context, MaterialPageRoute(builder: (builder) => HomeScreen()));}
 
     return Future.value(true);
   }
@@ -573,7 +568,8 @@ class DocumentPickerState extends State<DocumentPicker> {
     if (croppedFile.path != null) {
       return File(croppedFile.path);
     } else {
-      throw Exception("CroppedFile is not valid or does not contain a valid path.");
+      throw Exception(
+          "CroppedFile is not valid or does not contain a valid path.");
     }
   }
 
