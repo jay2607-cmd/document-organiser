@@ -7,8 +7,11 @@ import 'package:document_organiser/screens/views/home_screen.dart';
 import 'package:document_organiser/screens/views/layout_screen.dart';
 import 'package:document_organiser/screens/views/questions.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screen_lock/flutter_screen_lock.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:hive/hive.dart';
+import 'package:local_auth/local_auth.dart';
 
 import '../provider/db_provider.dart';
 
@@ -25,7 +28,8 @@ class SplashScreenState extends State<SplashScreen> {
     super.initState();
     Timer(
         const Duration(milliseconds: 1500),
-        () => DbProvider().getAuthState().then((value) async {
+            () =>
+            DbProvider().getAuthState().then((value) async {
               if (value == false) {
                 Navigator.pushReplacement(context,
                     MaterialPageRoute(builder: (context) => LayoutScreen()));
@@ -63,8 +67,8 @@ class SplashScreenState extends State<SplashScreen> {
                     ));*/
                 var box2 = await Hive.openBox("Password"
 
-                    // ignore: use_build_context_synchronously
-                    );
+                  // ignore: use_build_context_synchronously
+                );
 
                 var value2 = box2.get("password");
 
@@ -73,14 +77,17 @@ class SplashScreenState extends State<SplashScreen> {
                   correctString: value2,
                   maxRetries: 3,
                   retryDelay: const Duration(seconds: 5),
-                  delayBuilder: (context, delay) => Text(
-                      "Cannot be entered for ${(delay.inMilliseconds / 1000).ceil()} seconds."),
+                  delayBuilder: (context, delay) =>
+                      Text(
+                          "Cannot be entered for ${(delay.inMilliseconds / 1000)
+                              .ceil()} seconds."),
                   onUnlocked: () {
                     Navigator.pop(context);
                     // Navigator.of(context)
                     //     .pushReplacement(MaterialPageRoute(builder: (context) => const HomeScreen()));
                     Navigator.pushReplacement(context,
-                        MaterialPageRoute(builder: (context) => LayoutScreen()));
+                        MaterialPageRoute(
+                            builder: (context) => LayoutScreen()));
                   },
                   canCancel: false,
                   footer: TextButton(
@@ -88,10 +95,16 @@ class SplashScreenState extends State<SplashScreen> {
                       // Release the confirmation state and return to the initial input state.
                       // controller.unsetConfirmed();
                       Navigator.push(context,
-                          MaterialPageRoute(builder: (context) => ForgetPasswordScreen()));
+                          MaterialPageRoute(
+                              builder: (context) => ForgetPasswordScreen()));
                     },
                     child: const Text('Forgot Password'),
                   ),
+                  customizedButtonChild: const Icon(
+                    Icons.fingerprint,
+                  ),
+                  customizedButtonTap: () async => await localAuth(context),
+                  onOpened: () async => await localAuth(context),
                 );
               }
             }));
@@ -118,5 +131,34 @@ class SplashScreenState extends State<SplashScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> localAuth(BuildContext context) async {
+    final localAuth = LocalAuthentication();
+
+    try {
+      final didAuthenticate = await localAuth.authenticate(
+        localizedReason: 'Please authenticate',
+        // biometricOnly: true,
+      );
+
+      if (didAuthenticate) {
+        Navigator.pop(context);
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => LayoutScreen()),
+        );
+      }
+    } on PlatformException catch (e) {
+      // If an error occurs, or biometrics are not available, show a toast message.
+      Fluttertoast.showToast(
+        msg: "Please Enable Biometric Support from Local Settings",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.black54,
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
+    }
   }
 }
