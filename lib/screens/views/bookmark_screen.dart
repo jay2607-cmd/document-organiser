@@ -26,7 +26,7 @@ class _BookmarkScreenState extends State<BookmarkScreen> {
             title: Text('Document Organizer'),
             bottom: TabBar(
               tabs: [
-                Tab(text: 'Images'),
+                Tab(text: 'Images',),
                 Tab(text: 'PDFs'),
               ],
             ),

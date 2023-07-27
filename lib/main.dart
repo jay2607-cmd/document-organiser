@@ -6,9 +6,9 @@ import 'package:flutter/services.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:path_provider/path_provider.dart';
 
+import 'package:google_fonts/google_fonts.dart';
 
 Future<void> main() async {
-
   WidgetsFlutterBinding.ensureInitialized();
 
 /*
@@ -24,7 +24,9 @@ Future<void> main() async {
   Hive.init(directory.path);
   await Hive.initFlutter();
 
-  Hive.registerAdapter(SaveAdapter(),);
+  Hive.registerAdapter(
+    SaveAdapter(),
+  );
   Hive.registerAdapter(BookmarkAdapter());
 
   await Hive.openBox<Save>("saveCategories");
@@ -45,7 +47,6 @@ Future<void> main() async {
   //for question
   await Hive.openBox("Question");
 
-
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitDown,
     DeviceOrientation.portraitUp,
@@ -59,9 +60,15 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Document Organiser',
+      theme: ThemeData(
+        // Set the default text style to Montserrat
+        textTheme: GoogleFonts.montserratTextTheme(
+          Theme.of(context).textTheme,
+        ),
+      ),
       home: SplashScreen(),
     );
   }

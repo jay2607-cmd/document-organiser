@@ -11,7 +11,7 @@ import 'category_insider.dart';
 
 class Categories extends StatefulWidget {
   // final bool isLoggedIn;
-   bool isFromCategories;
+  bool isFromCategories;
 
   Categories({super.key, required this.isFromCategories});
 
@@ -180,20 +180,6 @@ class CategoriesState extends State<Categories> {
     print(
         "Added value in database : ${"Personal"} ::::: ${imageLengthPref.getInt(categoryList[0])}");
 
-/*    categoryMap[categoryList[0]] = outerCountBox.get(categoryList[0]);
-    categoryMap[categoryList[1]] = outerCountBox.get(categoryList[1]);
-    categoryMap[categoryList[2]] = outerCountBox.get(categoryList[2]);
-    categoryMap[categoryList[3]] = outerCountBox.get(categoryList[3]);
-    categoryMap[categoryList[4]] = outerCountBox.get(categoryList[4]);
-    categoryMap[categoryList[5]] = outerCountBox.get(categoryList[5]);
-    categoryMap[categoryList[6]] = outerCountBox.get(categoryList[6]);
-    categoryMap[categoryList[7]] = outerCountBox.get(categoryList[7]);
-    categoryMap[categoryList[8]] = outerCountBox.get(categoryList[8]);
-    categoryMap[categoryList[9]] = outerCountBox.get(categoryList[9]);
-    categoryMap[categoryList[10]] = outerCountBox.get(categoryList[10]);
-    categoryMap[categoryList[11]] = outerCountBox.get(categoryList[11]);
-    categoryMap[categoryList[12]] = outerCountBox.get(categoryList[12]);*/
-
     print(categoryList[0]);
     setState(() {});
   }
@@ -211,12 +197,15 @@ class CategoriesState extends State<Categories> {
           return GridView.builder(
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 3,
+              childAspectRatio: 0.74,
+              crossAxisSpacing: 8,
+              mainAxisSpacing: 6,
             ),
             itemCount: box.length,
             itemBuilder: (context, index) {
               return GestureDetector(
                 onTap: () {
-                 widget.isFromCategories = true;
+                  widget.isFromCategories = true;
 
                   Navigator.pushReplacement(
                     context,
@@ -231,18 +220,48 @@ class CategoriesState extends State<Categories> {
                 child: Card(
                   color: Color(0xffF6F7F8),
                   child: Container(
-                    color: Colors.blue.shade200,
+                    color: Color(0xffF0F1F5),
                     child: Stack(
                       children: [
                         Align(
                           alignment: Alignment.center,
-                          child: Text("${data[index].name} ",
-                              style: const TextStyle(
-                                  fontSize: 15, fontWeight: FontWeight.bold)),
+                          child: Image.asset(
+                            "assets/images/folder.png",
+                            width: 80,
+                            height: 80,
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 8.0),
+                          child: Align(
+                            alignment: Alignment.bottomCenter,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  "My",
+                                  style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                                SizedBox(
+                                    height:
+                                        4), // Add some spacing between "My" text and the existing widget
+                                Text(
+                                  "${data[index].name}",
+                                  style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
                         Align(
-                          alignment: Alignment.bottomRight,
-                          child: IconButton(
+                          alignment: Alignment.topRight,
+                          child:
+                              /*IconButton(
+
                             iconSize: 20,
                             onPressed: () {
                               showDialog(
@@ -280,19 +299,67 @@ class CategoriesState extends State<Categories> {
                               setState(() {});
                             },
                             icon: Icon(Icons.delete),
+                          ),*/
+                          PopupMenuButton<String>(
+                            icon: Padding(
+                              padding:
+                                  const EdgeInsets.only(bottom: 12.0, left: 14),
+                              child: Image.asset(
+                                'assets/images/more.png', // Replace with your image path
+                                width: 24, // Set your desired width
+                                height: 24, // Set your desired height
+                              ),
+                            ),
+                            onSelected: (deleteCategory) {
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return AlertDialog(
+                                    title: const Text('Warning!',
+                                        style: TextStyle(color: Colors.red)),
+                                    content: const Text(
+                                        'Do you really want to delete this Category!'),
+                                    actions: [
+                                      TextButton(
+                                        child: Text('Cancel'),
+                                        onPressed: () {
+                                          Navigator.pop(context);
+                                        },
+                                      ),
+                                      TextButton(
+                                        child: Text('OK'),
+                                        onPressed: () {
+                                          delete(data[index]);
+                                          categoryList
+                                              .remove(categoryList.last);
+
+                                          Navigator.pop(context);
+                                          print(
+                                              "categoryList.last ${categoryList.length}");
+                                        },
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+
+                              setState(() {});
+                            },
+                            itemBuilder: (BuildContext context) {
+                              return <PopupMenuEntry<String>>[
+                                PopupMenuItem<String>(
+                                  value: 'deleteCategory',
+                                  child: Text('Delete'),
+                                ),
+                              ];
+                            },
                           ),
                         ),
                         Align(
-                          alignment: Alignment.topRight,
+                          alignment: Alignment.topLeft,
                           child: Padding(
-                            padding: const EdgeInsets.all(8.0),
+                            padding: const EdgeInsets.only(top: 8.0, left: 12),
                             child: Text(
-                                /*widget.identifier!.containsKey(data[index].name)?""
-                                    "(${widget.identifier?[data[index]]})"
-                                    :"(0)",*/
-                                // count != 0 ? "($count)" : "",
-                                // outerCountBox.contains(data[index].name) ? outerCountBox.get(data[index].name).toString() : "0",
-
                                 outerCountBox == null
                                     ? ""
                                     : outerCountBox.get(data[index].name) ==
@@ -300,9 +367,10 @@ class CategoriesState extends State<Categories> {
                                             outerCountBox
                                                     .get(data[index].name) ==
                                                 0
-                                        ? ""
+                                        ? "0"
                                         : "${outerCountBox.get(data[index].name).toString()} ",
-                                style: TextStyle(fontWeight: FontWeight.bold)),
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold, fontSize: 12)),
                           ),
                         )
                         // SizedBox(
@@ -320,7 +388,9 @@ class CategoriesState extends State<Categories> {
           );
         },
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      floatingActionButton: FloatingActionButton(
+        child: Image.asset("assets/images/add_a.png"),
         onPressed: () {
           showDialog(
             context: context,
@@ -375,8 +445,8 @@ class CategoriesState extends State<Categories> {
             },
           );
         },
-        label: Text("New Category"),
-        icon: Icon(Icons.add),
+        // label: Text("New Category"),
+        // icon: Icon(Icons.add),
       ),
     );
   }

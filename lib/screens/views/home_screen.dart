@@ -13,6 +13,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../boxes/boxes.dart';
 import '../../database/bookmark.dart';
 import '../../provider/db_provider.dart';
+import '../../utils/constants.dart';
 import 'image_preview.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -143,158 +144,172 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     var box = Boxes.getData();
     // print("identifier size-->> ${identifier.length}");
     return DefaultTabController(
-      length: 3,
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text("MyDocs"),
-          bottom: TabBar(
-            tabs: [
-              Tab(
-                child: RichText(
-                  text: TextSpan(children: [
-                    TextSpan(
-                      text: "Categories",
-                    ),
-                    TextSpan(
-                        text: " (${box.length})",
-                        style: TextStyle(fontWeight: FontWeight.bold)),
-                  ]),
+        length: 3,
+        child: Scaffold(
+          appBar: AppBar(
+            actions: [
+              IconButton(
+                  color: Colors.black,
+                  onPressed: () {
+                    Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => DocumentPicker(
+                                  "Invoice",
+                                  isFromCategories: false,
+                                )));
+                  },
+                  icon: Image.asset(
+                    "assets/images/add.png",
+                    width: 25,
+                    height: 25,
+                  )),
+              Padding(
+                padding: const EdgeInsets.only(right: 6.0),
+                child: IconButton(
+                    color: Colors.black,
+                    onPressed: () async {
+                      if (isGridView!.getBool('isGrid') == true) {
+                        await isGridView!.setBool('isGrid', false);
+                      } else {
+                        await isGridView!.setBool('isGrid', true);
+                      }
+                      setState(() {});
+                    },
+                    icon: isGridView!.getBool('isGrid') == true
+                        ? Image.asset(
+                            "assets/images/gridview.png",
+                            width: 28,
+                            height: 28,
+                          )
+                        : Image.asset(
+                            "assets/images/listview.png",
+                            width: 28,
+                            height: 28,
+                          )),
+              ),
+            ],
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            leading: Padding(
+              padding: const EdgeInsets.only(left: 10),
+              child: IconButton(
+                icon: Image.asset(
+                  'assets/images/back.png',
+                  height: 24,
+                  width: 24,
+                ),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+              ),
+            ),
+            title: Padding(
+              padding: const EdgeInsets.only(left: 8.0),
+              child: Text(
+                "My Docs",
+                style: kAppbarStyle,
+              ),
+            ),
+          ),
+          body: TabBarView(
+            children: [
+              Padding(
+                padding: EdgeInsets.only(left: 16.0, right: 16, top: 16),
+                child: Categories(
+                  isFromCategories: false,
                 ),
               ),
-              Tab(
-                child: RichText(
-                  text: TextSpan(children: [
-                    TextSpan(
-                      text: "All Images",
-                    ),
-                    TextSpan(
-                        text: " (${imageFiles.length})",
-                        style: TextStyle(fontWeight: FontWeight.bold)),
-                  ]),
-                ),
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8.0, vertical: 16),
+                child: allImages(),
               ),
-              Tab(
-                child: RichText(
-                  text: TextSpan(children: [
-                    TextSpan(
-                      text: "All PDFs",
-                    ),
-                    TextSpan(
-                        text: " (${pdfFiles.length})",
-                        style: TextStyle(fontWeight: FontWeight.bold)),
-                  ]),
-                ),
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16),
+                child: allPDFs(),
               ),
             ],
           ),
-          actions: [
-            IconButton(
-                onPressed: () {
-                  Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => DocumentPicker(
-                                "Invoice",
-                                isFromCategories: false,
-                              )));
-                },
-                icon: const Icon(Icons.add)),
-            IconButton(
-                onPressed: () async {
-                  if (isGridView!.getBool('isGrid') == true) {
-                    await isGridView!.setBool('isGrid', false);
-                  } else {
-                    await isGridView!.setBool('isGrid', true);
-                  }
-                  setState(() {});
-                },
-                icon: isGridView!.getBool('isGrid') == true
-                    ? Icon(Icons.list)
-                    : Icon(Icons.grid_view_sharp)),
-
-            /*  PopupMenuButton<String>(
-              icon: Icon(Icons.more_vert),
-              onSelected: (value) {
-                // Handle menu item selection
-                if (value == 'security') {
-                  // Perform action for menu item 1
-
-                  // push to the account class
-                  Navigator.push(context,
-                      MaterialPageRoute(builder: (context) => Security()));
-                } else if (value == 'settings') {
-                  Navigator.push(context,
-                      MaterialPageRoute(builder: (context) => SettingScreen()));
-                }
-              },
-              itemBuilder: (context) => [
-                PopupMenuItem(
-                  value: 'security',
-                  child: Text('Security'),
-                ),
-                PopupMenuItem(
-                  value: 'settings',
-                  child: Text('Settings'),
-                ),
-              ],
-            )*/
-
-            /*IconButton(
-                icon: Icon(Icons.delete),
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return AlertDialog(
-                        title: const Text('Warning!',
-                            style: TextStyle(color: Colors.red)),
-                        content: const Text(
-                            'Do you really want to delete all images!'),
-                        actions: [
-                          TextButton(
-                            child: const Text('Cancel'),
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                          ),
-                          TextButton(
-                            child: Text('OK'),
-                            onPressed: () {
-                              deleteAllFilesInFolder();
-                              Navigator.pop(context);
-                            },
-                          ),
-                        ],
-                      );
-                    },
-                  );
-                  setState(() {});
-                }),*/
-          ],
-        ),
-        body: TabBarView(
-          children: [
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 16),
-              child: Categories(
-                isFromCategories: false,
+          bottomNavigationBar: Material(
+            color: Color(0xff4F6DDC),
+            child: Padding(
+              padding: EdgeInsets.only(
+                  left: 25,
+                  right: 25), // Add 15px padding on both left and right sides
+              child: TabBar(
+                indicatorPadding: EdgeInsets.only(bottom: 18),
+                indicatorColor: Colors.white,
+                indicatorSize: TabBarIndicatorSize.label,
+                indicatorWeight: 2, // Set the thickness of the indicator line
+                // isScrollable: true,
+                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 3),
+                tabs: [
+                  Tab(
+                    height: 120,
+                    icon: Image.asset(
+                      "assets/images/allcategory.png",
+                      height: 40,
+                      width: 40,
+                    ),
+                    child: Text(
+                      "Category (${box.length})",
+                      style: kTabBarTextStyle,
+                    ),
+                  ),
+                  Tab(
+                    height: 120,
+                    icon: Image.asset(
+                      "assets/images/allimages.png",
+                      height: 40,
+                      width: 40,
+                    ),
+                    child: Text(
+                      "All Images (${imageFiles.length})",
+                      style: kTabBarTextStyle,
+                    ),
+                  ),
+                  Tab(
+                    height: 120,
+                    icon: Image.asset(
+                      "assets/images/pdffile.png",
+                      height: 40,
+                      width: 40,
+                    ),
+                    child: Text(
+                      "All PDF's (${pdfFiles.length})",
+                      style: kTabBarTextStyle,
+                    ),
+                  ),
+                ],
               ),
             ),
-            Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 8.0, vertical: 16),
-              child: allImages(),
-            ),
-            Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16),
-              child: allPDFs(),
-            ),
-          ],
-        ),
-      ),
-    );
+          ),
+        ));
   }
+/*
+  BottomNavigationBar(
+  backgroundColor: Color(0xff4F6DDC),
+  type: BottomNavigationBarType
+      .fixed, // Fix the type to show all buttons
+  // currentIndex: _selectedIndex,
+  // onTap: _onItemTapped,
+  items: [
+  BottomNavigationBarItem(
+  icon: Image.asset("assets/images/allcategory.png",),
+  label: 'Categories',
+  ),
+  BottomNavigationBarItem(
+  icon: Image.asset("assets/images/allimages.png"),
+  label: 'All Images',
+  ),
+  BottomNavigationBarItem(
+  icon: Image.asset("assets/images/pdffile.png",),
+  label: 'All PDfs',
+  ),
+  ],
+  ),*/
 
   Future<DateTime> getFileLastModified(String filepath) async {
     File file = File(filepath);
@@ -461,7 +476,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                         PdfPath: pdfFiles[index].path,
                                         index: index,
                                         PdfList: pdfFiles,
-                                            fromWhere: "home",
+                                        fromWhere: "home",
                                       ),
                                     ),
                                   );
@@ -470,7 +485,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                             ),
                           ),
                           Align(
-                            alignment: Alignment.centerRight,
+                            alignment: Alignment.topRight,
                             child: IconButton(
                               onPressed: () {
                                 if (isBookmarked) {
@@ -523,7 +538,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
                         return GestureDetector(
                           onTap: () {
-
                             print("${index}");
                             Navigator.pushReplacement(
                               context,
@@ -538,23 +552,23 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                               ),
                             );
                           },
-                          child: Container(
-                            color: Colors.grey.shade200,
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 4.0, vertical: 1),
-                              child: Card(
-                                child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Container(
-                                        height: 200,
-                                        width: 150,
-                                        child: Image.file(file),
-                                      ),
-                                      Column(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 4.0, vertical: 1),
+                            child: Card(
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Container(
+                                      height: 200,
+                                      width: 150,
+                                      child: Image.file(file),
+                                    ),
+                                    Container(
+                                      color: Color(0xffF0F1F5),
+                                      child: Column(
                                         children: [
                                           Padding(
                                             padding: const EdgeInsets.only(
@@ -565,37 +579,37 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                                   Text(file.path.substring(70)),
                                             ),
                                           ),
-                                          // Add the last modified date here if needed
+
                                         ],
                                       ),
-                                      IconButton(
+                                    ),
+                                    Align(
+                                      alignment: Alignment.topRight,
+                                      child: IconButton(
                                         onPressed: () {
                                           if (isBookmarked) {
                                             bookmarkBox.deleteAt(bookmarkBox
                                                 .values
                                                 .toList()
                                                 .indexWhere((bookmark) =>
-                                                    bookmark.path ==
-                                                    file.path));
+                                            bookmark.path ==
+                                                file.path));
                                           } else {
                                             bookmarkBox
                                                 .add(Bookmark(path: file.path));
                                           }
                                           setState(
-                                              () {}); // Update the UI by calling setState
+                                                  () {}); // Update the UI by calling setState
                                         },
                                         icon: isBookmarked
-                                            ? Icon(
-                                                Icons.bookmark,
-                                                color: Colors.red,
-                                              )
-                                            : Icon(
-                                                Icons.bookmark_border,
-                                                color: Colors.red,
-                                              ),
+                                            ? Image.asset(
+                                          "assets/images/bo_mark.png", height: 20, width: 20,)
+                                            : Image.asset(
+                                          "assets/images/bo_mark_.png",height: 20, width: 20,),
                                       ),
-                                    ],
-                                  ),
+                                    ),
+
+                                  ],
                                 ),
                               ),
                             ),
@@ -610,9 +624,20 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                           child: TextFormField(
                             controller: searchController,
                             decoration: InputDecoration(
-                              hintText: "Search",
-                              border: OutlineInputBorder(),
-                            ),
+                                contentPadding: EdgeInsets.symmetric(
+                                    horizontal: 20, vertical: 15),
+                                hintText: "Search",
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(30.0),
+                                ),
+                                suffixIcon: Padding(
+                                  padding: const EdgeInsets.only(right: 20.0),
+                                  child: Image.asset(
+                                    "assets/images/search.png",
+                                    height: 10,
+                                    width: 10,
+                                  ),
+                                )),
                             onChanged: (String? value) {
                               print(value);
                               setState(() {
@@ -651,105 +676,97 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                     ),
                                   );
                                 },
-                                child: Container(
-                                  color: Colors.grey.shade200,
+                                child: Card(
+                                  color: Color(0xffF0F1F5),
                                   child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 4.0, vertical: 1),
-                                    child: Card(
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: Row(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Container(
-                                              height: 70,
-                                              width: 80,
-                                              child: Image.file(file),
-                                            ),
-                                            Column(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.spaceEvenly,
-                                              children: [
-                                                Padding(
-                                                  padding:
-                                                      const EdgeInsets.only(
-                                                          top: 12.0, left: 6),
-                                                  child: Align(
-                                                    alignment: Alignment.center,
-                                                    child: Text(
-                                                      file.path.substring(70),
-                                                    ),
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Stack(
+                                      children: [
+                                        Align(
+                                          alignment: Alignment.centerLeft,
+                                          child: Container(
+                                            height: 70,
+                                            width: 80,
+                                            child: Image.file(file),
+                                          ),
+                                        ),
+                                        Align(
+                                          alignment: Alignment.center,
+                                          child: Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceEvenly,
+                                            children: [
+                                              Padding(
+                                                padding: const EdgeInsets.only(
+                                                    top: 12.0, left: 6),
+                                                child: Align(
+                                                  alignment: Alignment.center,
+                                                  child: Text(
+                                                    file.path.substring(70),
                                                   ),
                                                 ),
-                                                isHideCreationDate
-                                                    ? Text("")
-                                                    : FutureBuilder<DateTime>(
-                                                        future:
-                                                            getFileLastModified(
-                                                                file.path),
-                                                        builder: (BuildContext
-                                                                context,
-                                                            AsyncSnapshot<
-                                                                    DateTime>
-                                                                snapshot) {
-                                                          if (snapshot
-                                                                  .connectionState ==
-                                                              ConnectionState
-                                                                  .waiting) {
-                                                            // While waiting for the result, show a progress indicator
-                                                            return CircularProgressIndicator();
-                                                          } else if (snapshot
-                                                              .hasError) {
-                                                            // If an error occurred during the Future execution
-                                                            return Text(
-                                                                'Error: ${snapshot.error}');
-                                                          } else {
-                                                            // If the Future completed successfully, show the last modified date
-                                                            DateTime
-                                                                lastModified =
-                                                                snapshot.data!;
-                                                            return Text(
-                                                                "${lastModified.toString().substring(0, lastModified.toString().length - 4)}");
-                                                          }
-                                                        },
-                                                      ),
-                                              ],
-                                            ),
-                                            IconButton(
+                                              ),
+                                              isHideCreationDate
+                                                  ? Text("")
+                                                  : FutureBuilder<DateTime>(
+                                                      future: getFileLastModified(
+                                                          file.path),
+                                                      builder: (BuildContext
+                                                              context,
+                                                          AsyncSnapshot<DateTime>
+                                                              snapshot) {
+                                                        if (snapshot
+                                                                .connectionState ==
+                                                            ConnectionState
+                                                                .waiting) {
+                                                          // While waiting for the result, show a progress indicator
+                                                          return CircularProgressIndicator();
+                                                        } else if (snapshot
+                                                            .hasError) {
+                                                          // If an error occurred during the Future execution
+                                                          return Text(
+                                                              'Error: ${snapshot.error}');
+                                                        } else {
+                                                          // If the Future completed successfully, show the last modified date
+                                                          DateTime lastModified =
+                                                              snapshot.data!;
+                                                          return Text(
+                                                              "${lastModified.toString().substring(0, lastModified.toString().length - 4)}");
+                                                        }
+                                                      },
+                                                    ),
+                                            ],
+                                          ),
+                                        ),
+                                        Align(
+                                          alignment: Alignment.topRight,
+                                          child: Padding(
+                                            padding: const EdgeInsets.only(bottom: 16.0),
+                                            child: IconButton(
                                               onPressed: () {
                                                 if (isBookmarked) {
-                                                  bookmarkBox.deleteAt(
-                                                      bookmarkBox.values
-                                                          .toList()
-                                                          .indexWhere(
-                                                              (bookmark) =>
-                                                                  bookmark
-                                                                      .path ==
-                                                                  file.path));
+                                                  bookmarkBox.deleteAt(bookmarkBox
+                                                      .values
+                                                      .toList()
+                                                      .indexWhere((bookmark) =>
+                                                          bookmark.path ==
+                                                          file.path));
                                                 } else {
-                                                  bookmarkBox.add(Bookmark(
-                                                      path: file.path));
+                                                  bookmarkBox.add(
+                                                      Bookmark(path: file.path));
                                                 }
                                                 setState(
                                                     () {}); // Update the UI by calling setState
                                               },
                                               icon: isBookmarked
-                                                  ? Icon(
-                                                      Icons.bookmark,
-                                                      color: Colors.red,
-                                                    )
-                                                  : Icon(
-                                                      Icons.bookmark_border,
-                                                      color: Colors.red,
-                                                    ),
+                                                  ? Image.asset(
+                                                      "assets/images/bo_mark.png", height: 20, width: 20,)
+                                                  : Image.asset(
+                                                      "assets/images/bo_mark_.png",height: 20, width: 20,),
                                             ),
-                                          ],
+                                          ),
                                         ),
-                                      ),
+                                      ],
                                     ),
                                   ),
                                 ),
