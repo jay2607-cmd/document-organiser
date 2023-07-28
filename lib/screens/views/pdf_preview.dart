@@ -5,6 +5,7 @@ import 'package:hive/hive.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 
+import '../../utils/constants.dart';
 import 'bookmark_screen.dart';
 import 'category_insider.dart';
 import 'home_screen.dart';
@@ -57,7 +58,28 @@ class _PdfPreviewState extends State<PdfPreview> {
       onWillPop: _willPopCallback,
       child: Scaffold(
         appBar: AppBar(
-          title: Text("PDF Preview"),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          leading: Padding(
+            padding: const EdgeInsets.only(left: 10),
+            child: IconButton(
+              icon: Image.asset(
+                'assets/images/back.png',
+                height: 24,
+                width: 24,
+              ),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+            ),
+          ),
+          title: Padding(
+            padding: const EdgeInsets.only(left: 8.0),
+            child: Text(
+              "PDF Preview",
+              style: kAppbarStyle,
+            ),
+          ),
           actions: [
             IconButton(
               onPressed: () async {
@@ -68,7 +90,9 @@ class _PdfPreviewState extends State<PdfPreview> {
                 );
                 print(notesBox.get(widget.PdfPath));
               },
-              icon: Icon(Icons.share),
+              icon: Image.asset(
+                'assets/images/share.png',
+              ),
             ),
             IconButton(
               onPressed: () async {
@@ -85,7 +109,9 @@ class _PdfPreviewState extends State<PdfPreview> {
                   _openBottomDialog(context, data, widget.PdfPath);
                 }
               },
-              icon: Icon(Icons.info_outline),
+              icon: Image.asset(
+                'assets/images/info1.png',
+              ),
             ),
             IconButton(
               onPressed: () async {
@@ -119,7 +145,9 @@ class _PdfPreviewState extends State<PdfPreview> {
                   },
                 );
               },
-              icon: Icon(Icons.delete),
+              icon: Image.asset(
+                'assets/images/delete.png',
+              ),
             ),
           ],
         ),

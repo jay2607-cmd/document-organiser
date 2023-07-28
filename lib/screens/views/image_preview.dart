@@ -12,6 +12,7 @@ import 'package:share_plus/share_plus.dart';
 
 import '../../database/bookmark.dart';
 import '../../provider/db_provider.dart';
+import '../../utils/constants.dart';
 
 class ImagePreview extends StatefulWidget {
   List<File> imageFiles = [];
@@ -79,19 +80,26 @@ class _ImagePreviewState extends State<ImagePreview> {
       child: SafeArea(
         child: Scaffold(
           appBar: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
             leading: Padding(
-              padding: const EdgeInsets.only(left: 16.0),
+              padding: const EdgeInsets.only(left: 10),
               child: IconButton(
-                icon: Icon(Icons.arrow_back),
+                icon: Image.asset(
+                  'assets/images/back.png',
+                  height: 24,
+                  width: 24,
+                ),
                 onPressed: () {
-                  _willPopCallback();
+                  Navigator.pop(context);
                 },
               ),
             ),
             title: Padding(
               padding: const EdgeInsets.only(left: 8.0),
               child: Text(
-                "Preview",
+                "Image Preview",
+                style: kAppbarStyle,
               ),
             ),
           ),
@@ -125,7 +133,9 @@ class _ImagePreviewState extends State<ImagePreview> {
                                   : "${widget.filePath.substring(70)}",
                             );
                           },
-                          icon: Icon(Icons.share),
+                          icon: Image.asset(
+                            'assets/images/share.png',
+                          ),
                         ),
                       ),
                     ),
@@ -169,7 +179,9 @@ class _ImagePreviewState extends State<ImagePreview> {
                               },
                             );
                           },
-                          icon: Icon(Icons.delete),
+                          icon: Image.asset(
+                            'assets/images/delete.png',
+                          ),
                         ),
                       ),
                     ),
@@ -195,7 +207,9 @@ class _ImagePreviewState extends State<ImagePreview> {
                               _openBottomDialog(context, data, widget.filePath);
                             }
                           },
-                          icon: Icon(Icons.info_outline),
+                          icon: Image.asset(
+                            'assets/images/info1.png',
+                          ),
                         ),
                       ),
                     ),
@@ -277,7 +291,9 @@ class _ImagePreviewState extends State<ImagePreview> {
           },
         );
       },
-      icon: Icon(Icons.drive_file_rename_outline_rounded),
+      icon: Image.asset(
+        'assets/images/edit.png',
+      ),
     );
   }
 

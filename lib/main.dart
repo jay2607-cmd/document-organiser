@@ -65,6 +65,7 @@ class MyApp extends StatelessWidget {
       title: 'Document Organiser',
       theme: ThemeData(
         // Set the default text style to Montserrat
+        // useMaterial3: true,
         textTheme: GoogleFonts.montserratTextTheme(
           Theme.of(context).textTheme,
         ),

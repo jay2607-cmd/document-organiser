@@ -25,7 +25,7 @@ class SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
     Timer(
-        const Duration(milliseconds: 1500),
+        const Duration(milliseconds: 2000),
         () => DbProvider().getAuthState().then((value) async {
               if (value == false) {
                 Navigator.pushReplacement(context,
@@ -109,20 +109,12 @@ class SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
+    return  Scaffold(
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              "Document",
-              style: TextStyle(fontSize: 35),
-            ),
-            Text(
-              "Organiser",
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 35),
-            ),
-          ],
+        child: Image.asset(
+          'assets/images/splash.png',
+          height: 200,
+          width: 200,
         ),
       ),
     );

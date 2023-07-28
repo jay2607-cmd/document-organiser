@@ -14,6 +14,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
 import '../provider/db_provider.dart';
+import '../utils/constants.dart';
 
 enum AppState { free, picked, cropped }
 
@@ -144,96 +145,35 @@ class DocumentPickerState extends State<DocumentPicker> {
       onWillPop: _willPopCallback,
       child: Scaffold(
         appBar: AppBar(
-          title: Text("Document Picker"),
-          leading: IconButton(
-              icon: Icon(Icons.arrow_back),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          leading: Padding(
+            padding: const EdgeInsets.only(left: 10),
+            child: IconButton(
+              icon: Image.asset(
+                'assets/images/back.png',
+                height: 24,
+                width: 24,
+              ),
               onPressed: () {
                 _willPopCallback();
-              }),
+              },
+            ),
+          ),
+          title: Padding(
+            padding: const EdgeInsets.only(left: 8.0),
+            child: Text(
+              "Doc Picker",
+              style: kAppbarStyle,
+            ),
+          ),
           actions: [
             IconButton(
-              onPressed: () async {
-                if (isImagePreview) {
-                  await createPDF();
-                  await savePDF();
-
-                  isAdded = true;
-
-                  var outerBox = await Hive.openBox("OuterCount");
-                  // int count = outerBox  != null ? outerBox.get(widget.value) : isAdded = false;
-
-                  int count = outerBox == null
-                      ? 0
-                      : outerBox.get(widget.value) == null
-                          ? 0
-                          : outerBox.get(widget.value);
-
-                  if (isAdded) {
-                    outerBox.put(widget.value, count + 1);
-                  }
-
-                  showInSnackBar("Image saved as a Document");
-                  _willPopCallback();
-                } else if (isPDFPreview) {
-                  showInSnackBar("Already a Document File");
-                } else {
-                  showInSnackBar("No file Chosen");
-                }
-              },
-              icon: Icon(Icons.picture_as_pdf_sharp),
-            ),
-            IconButton(
                 onPressed: () async {
-                  // showDialog(context: context, builder: (context) => DownloadingDialoag(image: image,isImagePreview: isImagePreview,isPDFPreview: isPDFPreview,pdfFilePath: pdfFilePath));
-
-                  final directory = await getExternalStorageDirectory();
-
-                  // print('Image Path : ${imagePath}');
-                  // await imagePath.writeAsBytes(byteData.buffer.asUint8List());
-                  File? imagePath;
                   if (isImagePreview) {
-                    // moveFileToSubfolder(File(image!.path), value);
+                    await createPDF();
+                    await savePDF();
 
-                    imagePath = await File(
-                            '${directory!.path}/${DateTime.now().millisecondsSinceEpoch}.png')
-                        .create();
-                    await File(image!.path).copy(imagePath.path);
-                    print("imagePath.path ${imagePath.path}");
-
-                    // createSubfolder(value,imagePath.path);
-                    subfolderPath =
-                        await createSubfolder(value, imagePath.path);
-                    await moveFileToSubfolder(imagePath.path);
-
-                    notesBox = await Hive.openBox("Notes");
-                    print("updatedImagePath ${updatedImagePath}");
-                    if (answer.text.isNotEmpty) {
-                      await notesBox.put(updatedImagePath, answer.text);
-                      String data = notesBox.get(updatedImagePath);
-                    } else {
-                      print("Not added in database");
-                    }
-                  } else if (isPDFPreview) {
-                    final PDFPath = await File(
-                            '${directory!.path}/${DateTime.now().millisecondsSinceEpoch}.pdf')
-                        .create();
-                    await File(pdfFilePath).copy(PDFPath.path);
-                    print("PDF.path ${PDFPath.path}");
-
-                    subfolderPath = await createSubfolder(value, PDFPath.path);
-
-                    await moveFileToSubfolder(PDFPath.path);
-
-                    notesBox = await Hive.openBox("Notes");
-                    print("updatedImagePath ${updatedPdfPath}");
-                    if (answer.text.isNotEmpty) {
-                      await notesBox.put(updatedPdfPath, answer.text);
-                      String data = notesBox.get(updatedPdfPath);
-                    } else {
-                      print("Not added in database");
-                    }
-                  }
-                  if (isImagePreview || isPDFPreview) {
                     isAdded = true;
 
                     var outerBox = await Hive.openBox("OuterCount");
@@ -249,14 +189,19 @@ class DocumentPickerState extends State<DocumentPicker> {
                       outerBox.put(widget.value, count + 1);
                     }
 
+                    showInSnackBar("Image saved as a Document");
                     _willPopCallback();
-                    showInSnackBar("Image Saved");
+                  } else if (isPDFPreview) {
+                    showInSnackBar("Already a Document File");
                   } else {
-                    showInSnackBar("Please select a file to save");
+                    showInSnackBar("No file Chosen");
                   }
-                  // Navigator.pop(context);
                 },
-                icon: Icon(Icons.save)),
+                icon: Image.asset(
+                  "assets/images/pdf.png",
+                  width: 28,
+                  height: 28,
+                )),
             IconButton(
                 onPressed: () {
                   if (state == AppState.free) {
@@ -267,7 +212,90 @@ class DocumentPickerState extends State<DocumentPicker> {
                     _cropImage();
                   }
                 },
-                icon: _buildButtonIcon())
+                icon: _buildButtonIcon()),
+            Padding(
+              padding: const EdgeInsets.only(right: 8.0),
+              child: IconButton(
+                  onPressed: () async {
+                    // showDialog(context: context, builder: (context) => DownloadingDialoag(image: image,isImagePreview: isImagePreview,isPDFPreview: isPDFPreview,pdfFilePath: pdfFilePath));
+
+                    final directory = await getExternalStorageDirectory();
+
+                    // print('Image Path : ${imagePath}');
+                    // await imagePath.writeAsBytes(byteData.buffer.asUint8List());
+                    File? imagePath;
+                    if (isImagePreview) {
+                      // moveFileToSubfolder(File(image!.path), value);
+
+                      imagePath = await File(
+                              '${directory!.path}/${DateTime.now().millisecondsSinceEpoch}.png')
+                          .create();
+                      await File(image!.path).copy(imagePath.path);
+                      print("imagePath.path ${imagePath.path}");
+
+                      // createSubfolder(value,imagePath.path);
+                      subfolderPath =
+                          await createSubfolder(value, imagePath.path);
+                      await moveFileToSubfolder(imagePath.path);
+
+                      notesBox = await Hive.openBox("Notes");
+                      print("updatedImagePath ${updatedImagePath}");
+                      if (answer.text.isNotEmpty) {
+                        await notesBox.put(updatedImagePath, answer.text);
+                        String data = notesBox.get(updatedImagePath);
+                      } else {
+                        print("Not added in database");
+                      }
+                    } else if (isPDFPreview) {
+                      final PDFPath = await File(
+                              '${directory!.path}/${DateTime.now().millisecondsSinceEpoch}.pdf')
+                          .create();
+                      await File(pdfFilePath).copy(PDFPath.path);
+                      print("PDF.path ${PDFPath.path}");
+
+                      subfolderPath =
+                          await createSubfolder(value, PDFPath.path);
+
+                      await moveFileToSubfolder(PDFPath.path);
+
+                      notesBox = await Hive.openBox("Notes");
+                      print("updatedImagePath ${updatedPdfPath}");
+                      if (answer.text.isNotEmpty) {
+                        await notesBox.put(updatedPdfPath, answer.text);
+                        String data = notesBox.get(updatedPdfPath);
+                      } else {
+                        print("Not added in database");
+                      }
+                    }
+                    if (isImagePreview || isPDFPreview) {
+                      isAdded = true;
+
+                      var outerBox = await Hive.openBox("OuterCount");
+                      // int count = outerBox  != null ? outerBox.get(widget.value) : isAdded = false;
+
+                      int count = outerBox == null
+                          ? 0
+                          : outerBox.get(widget.value) == null
+                              ? 0
+                              : outerBox.get(widget.value);
+
+                      if (isAdded) {
+                        outerBox.put(widget.value, count + 1);
+                      }
+
+                      _willPopCallback();
+                      showInSnackBar("Image Saved");
+                    } else {
+                      showInSnackBar("Please select a file to save");
+                    }
+                    // Navigator.pop(context);
+                  },
+                  icon: Image.asset(
+                    "assets/images/save.png",
+                    width: 28,
+                    height: 28,
+                  )),
+            ),
           ],
         ),
         body: SingleChildScrollView(
@@ -287,8 +315,8 @@ class DocumentPickerState extends State<DocumentPicker> {
                         ? Column(
                             children: [
                               Container(
-                                  height: 500,
-                                  width: 400,
+                                  height: 600,
+                                  width: 500,
                                   child: Image.file(image!)),
                             ],
                           )
@@ -341,8 +369,10 @@ class DocumentPickerState extends State<DocumentPicker> {
         floatingActionButtonLocation: ExpandableFab.location,
         floatingActionButton: ExpandableFab(
           child: Icon(Icons.add),
+          backgroundColor: Color(0xff4F6DDC),
           children: [
             FloatingActionButton(
+              backgroundColor: Color(0xff4F6DDC),
               heroTag: null,
               child: const Icon(Icons.camera),
               onPressed: () {
@@ -350,6 +380,7 @@ class DocumentPickerState extends State<DocumentPicker> {
               },
             ),
             FloatingActionButton(
+              backgroundColor: Color(0xff4F6DDC),
               heroTag: null,
               child: const Icon(Icons.photo),
               onPressed: () {
@@ -357,6 +388,7 @@ class DocumentPickerState extends State<DocumentPicker> {
               },
             ),
             FloatingActionButton(
+              backgroundColor: Color(0xff4F6DDC),
               heroTag: null,
               child: const Icon(Icons.picture_as_pdf),
               onPressed: () {
@@ -371,13 +403,28 @@ class DocumentPickerState extends State<DocumentPicker> {
 
   Widget _buildButtonIcon() {
     if (state == AppState.free) {
-      return const Icon(Icons.crop);
+      return Image.asset(
+        "assets/images/crop.png",
+        width: 28,
+        height: 28,
+      );
     } else if (state == AppState.picked) {
-      return const Icon(Icons.crop);
+      return Image.asset(
+        "assets/images/crop.png",
+        width: 28,
+        height: 28,
+      );
     } else if (state == AppState.cropped) {
-      return const Icon(Icons.crop);
+      return Image.asset(
+        "assets/images/crop.png",
+        width: 28,
+        height: 28,
+      );
     } else {
-      return Icon(Icons.disabled_by_default);
+      return Icon(
+        Icons.disabled_by_default,
+        color: Colors.black,
+      );
     }
   }
 
@@ -452,11 +499,14 @@ class DocumentPickerState extends State<DocumentPicker> {
   Future<bool> _willPopCallback() {
     if (widget.isFromCategories) {
       Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (builder) => CategoryInsider(categoryLabel: widget.value, isFromCategories: false)));
-    }
-    else{
+          context,
+          MaterialPageRoute(
+              builder: (builder) => CategoryInsider(
+                  categoryLabel: widget.value, isFromCategories: false)));
+    } else {
       Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (builder) => HomeScreen()));}
+          context, MaterialPageRoute(builder: (builder) => HomeScreen()));
+    }
 
     return Future.value(true);
   }

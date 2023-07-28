@@ -300,7 +300,7 @@ class CategoriesState extends State<Categories> {
                             },
                             icon: Icon(Icons.delete),
                           ),*/
-                          PopupMenuButton<String>(
+                              PopupMenuButton<String>(
                             icon: Padding(
                               padding:
                                   const EdgeInsets.only(bottom: 12.0, left: 14),
@@ -379,6 +379,8 @@ class CategoriesState extends State<Categories> {
                         // Text(
                         //     "Date  :  ${data[reversedIndex].date.toString()}",
                         //     style: const TextStyle(fontSize: 13)),
+
+
                       ],
                     ),
                   ),
@@ -388,65 +390,73 @@ class CategoriesState extends State<Categories> {
           );
         },
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      floatingActionButton: FloatingActionButton(
-        child: Image.asset("assets/images/add_a.png"),
-        onPressed: () {
-          showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                title: const Text('Add Category!',
-                    style: TextStyle(color: Colors.blue)),
-                content: const Text('Do you really want to Add New Category!'),
-                actions: [
-                  TextField(
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.blue),
-                          borderRadius: BorderRadius.circular(10)),
-                      hintText: 'Enter New Category',
-                      helperText: 'Keep it meaningful',
-                      labelText: 'Add Category',
-                      prefixIcon: const Icon(
-                        Icons.drive_file_rename_outline_rounded,
-                        color: Colors.blue,
+      floatingActionButtonLocation: FloatingActionButtonLocation.endContained,
+      floatingActionButton: Container(
+        height: 100,
+        width: 100,
+        child: FloatingActionButton(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+
+          // shape: ,
+          child: Image.asset("assets/images/add_a.png", height: 80,width: 80,),
+          onPressed: () {
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: const Text('Add Category!',
+                      style: TextStyle(color: Colors.blue)),
+                  content: const Text('Do you really want to Add New Category!'),
+                  actions: [
+                    TextField(
+                      decoration: InputDecoration(
+                        border: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.blue),
+                            borderRadius: BorderRadius.circular(10)),
+                        hintText: 'Enter New Category',
+                        helperText: 'Keep it meaningful',
+                        labelText: 'Add Category',
+                        prefixIcon: const Icon(
+                          Icons.drive_file_rename_outline_rounded,
+                          color: Colors.blue,
+                        ),
                       ),
+                      controller: categoryController,
                     ),
-                    controller: categoryController,
-                  ),
-                  TextButton(
-                    child: Text('Add'),
-                    onPressed: () async {
-                      Navigator.pop(context);
-                      print(categoryController);
+                    TextButton(
+                      child: Text('Add'),
+                      onPressed: () async {
+                        Navigator.pop(context);
+                        print(categoryController);
 
-                      var data = Save(name: categoryController.text, image: "");
-                      var box = Boxes.getData();
-                      bool categoryExists = box.values.any((item) =>
-                          item.name.toLowerCase() == data.name.toLowerCase());
-                      if (categoryExists) {
-                        showInSnackBar("Category already exists!");
-                        return; // Don't add the category if it already exists
-                      } else if (categoryController.text.trim().isEmpty) {
-                        showInSnackBar("Category Cannot be Empty");
-                      } else {
-                        box.add(data);
-                        categoryList.add(data.name);
-                        print("categoryList.last ${categoryList.last}");
-                      }
+                        var data = Save(name: categoryController.text, image: "");
+                        var box = Boxes.getData();
+                        bool categoryExists = box.values.any((item) =>
+                            item.name.toLowerCase() == data.name.toLowerCase());
+                        if (categoryExists) {
+                          showInSnackBar("Category already exists!");
+                          return; // Don't add the category if it already exists
+                        } else if (categoryController.text.trim().isEmpty) {
+                          showInSnackBar("Category Cannot be Empty");
+                        } else {
+                          box.add(data);
+                          categoryList.add(data.name);
+                          print("categoryList.last ${categoryList.last}");
+                        }
 
-                      setState(() {});
-                      categoryController.clear();
-                    },
-                  ),
-                ],
-              );
-            },
-          );
-        },
-        // label: Text("New Category"),
-        // icon: Icon(Icons.add),
+                        setState(() {});
+                        categoryController.clear();
+                      },
+                    ),
+                  ],
+                );
+              },
+            );
+          },
+          // label: Text("New Category"),
+          // icon: Icon(Icons.add),
+        ),
       ),
     );
   }
