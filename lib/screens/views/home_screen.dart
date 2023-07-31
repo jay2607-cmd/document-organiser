@@ -440,9 +440,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     padding: const EdgeInsets.symmetric(
                         vertical: 10.0, horizontal: 7),
                     child: TextFormField(
+
                       controller: searchController,
                       decoration: InputDecoration(
-                          filled: true,
                           fillColor: Color(0xffF0F1F5),
                           contentPadding: EdgeInsets.symmetric(
                               horizontal: 20, vertical: 17),

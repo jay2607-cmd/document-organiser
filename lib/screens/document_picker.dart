@@ -572,9 +572,11 @@ class DocumentPickerState extends State<DocumentPicker> {
         hintText: 'Notes',
         // helperText: 'Keep it meaningful for future purposes',
         labelText: '${widget.value} Notes (Optional)',
+
         prefixIcon: const Icon(
           Icons.question_answer,
-          color: Colors.blue,
+          color: kPurpleColor,
+
         ),
       ),
       controller: answer,
